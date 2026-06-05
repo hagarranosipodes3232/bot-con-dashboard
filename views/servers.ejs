@@ -1,39 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+  <meta charset="UTF-8">
   <title>Servidores</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
-<div class="layout">
-  <aside class="sidebar">
-    <div class="logo">🤖 012 Bot</div>
-    <div class="menu">
-      <a href="/">Inicio</a>
-      <a class="active" href="/servers">Servidores</a>
-    </div>
-  </aside>
+<body class="black-page">
 
-  <main class="main">
-    <div class="header">
-      <h1>Hola, <%= user.username %></h1>
-      <a class="btn green" href="/invite">Añadir a Discord</a>
-    </div>
+<div class="servers-page">
 
-    <div class="grid">
-      <% guilds.forEach(guild => { %>
-        <div class="server-card">
-          <h3><%= guild.name %></h3>
+  <div class="topbar">
+    <h1>🤖 012 Bot</h1>
+    <a class="btn green" href="/invite">➕ Añadir a Discord</a>
+  </div>
 
-          <% if (botGuilds.includes(guild.id)) { %>
-            <a class="btn" href="/dashboard/<%= guild.id %>">Gestionar</a>
-          <% } else { %>
-            <a class="btn green" href="/invite">Añadir bot</a>
-          <% } %>
-        </div>
-      <% }) %>
-    </div>
-  </main>
+  <h2>Seleccioná un servidor</h2>
+
+  <div class="server-grid">
+    <% guilds.forEach(guild => { %>
+      <div class="server-card">
+        <h3><%= guild.name %></h3>
+
+        <% if (botGuilds.includes(guild.id)) { %>
+          <a class="btn" href="/dashboard/<%= guild.id %>">
+            ⚙️ Gestionar servidor
+          </a>
+        <% } else { %>
+          <a class="btn green" href="/invite">
+            ➕ Añadir bot
+          </a>
+        <% } %>
+      </div>
+    <% }) %>
+  </div>
+
 </div>
+
 </body>
 </html>
