@@ -120,7 +120,60 @@ placeholder="Escribí el mensaje que aparecerá en el panel de tickets..."><%= c
             <input class="input" type="number" min="1" name="ticketLimit"
               value="<%= config.ticketLimit || 1 %>">
           </div>
+<div class="card">
+  <h2>🎛 Botones del Panel</h2>
+  <p style="color:#aaa; margin-bottom:15px;">
+    Podés crear hasta 20 botones. Cada botón puede tener texto, emoji, color y mensaje propio.
+  </p>
 
+  <% for (let i = 1; i <= 20; i++) { 
+    const btn = config.ticketButtons?.[i - 1] || {};
+  %>
+
+    <div class="button-config-card">
+      <h3>Botón <%= i %></h3>
+
+      <label>
+        <input
+          type="checkbox"
+          name="buttonEnabled_<%= i %>"
+          <%= btn.enabled ? "checked" : "" %>
+        >
+        Activar botón
+      </label>
+
+      <label>Texto del botón</label>
+      <input
+        class="input"
+        name="buttonLabel_<%= i %>"
+        value="<%= btn.label || `Ticket ${i}` %>"
+      >
+
+      <label>Emoji</label>
+      <input
+        class="input"
+        name="buttonEmoji_<%= i %>"
+        value="<%= btn.emoji || '🎫' %>"
+      >
+
+      <label>Color del botón</label>
+      <select class="input" name="buttonStyle_<%= i %>">
+        <option value="Success" <%= btn.style === "Success" ? "selected" : "" %>>Verde</option>
+        <option value="Primary" <%= btn.style === "Primary" ? "selected" : "" %>>Azul</option>
+        <option value="Secondary" <%= btn.style === "Secondary" ? "selected" : "" %>>Gris</option>
+        <option value="Danger" <%= btn.style === "Danger" ? "selected" : "" %>>Rojo</option>
+      </select>
+
+      <label>Mensaje cuando se abre este ticket</label>
+      <textarea
+        class="textarea"
+        name="buttonWelcome_<%= i %>"
+        placeholder="Mensaje propio de este botón..."
+      ><%= btn.welcomeMessage || '' %></textarea>
+    </div>
+
+  <% } %>
+</div>
           <div class="card">
             <h2>👋 Mensaje de Bienvenida</h2>
 

@@ -144,6 +144,17 @@ app.get("/dashboard/:guildId", async (req, res) => {
 });
 
 async function saveTicketConfig(guildId, body, forceEnabled = false) {
+  const ticketButtons = [];
+
+  for (let i = 1; i <= 20; i++) {
+    ticketButtons.push({
+      enabled: body[`buttonEnabled_${i}`] === "on",
+      label: body[`buttonLabel_${i}`] || `Ticket ${i}`,
+      emoji: body[`buttonEmoji_${i}`] || "🎫",
+      style: body[`buttonStyle_${i}`] || "Success",
+      welcomeMessage: body[`buttonWelcome_${i}`] || ""
+    });
+  }
   return GuildConfig.findOneAndUpdate(
     { guildId },
     {
@@ -164,7 +175,11 @@ async function saveTicketConfig(guildId, body, forceEnabled = false) {
         body.ticketPanelMessage && body.ticketPanelMessage.trim() !== ""
           ? body.ticketPanelMessage
           : "Usá el botón de abajo para abrir un ticket.",
-      ticketEmbedColor: body.ticketEmbedColor || "#23a559"
+      ticketEmbedColor: body.ticketEmbedColor || "#23a559",
+ticketButtonLabel: body.ticketButtonLabel || "Abrir Ticket",
+ticketButtonEmoji: body.ticketButtonEmoji || "🎫",
+ticketButtonStyle: body.ticketButtonStyle || "Success",
+ticketButtons
     },
     { upsert: true, new: true }
   );
@@ -193,18 +208,49 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
     .setFooter({ text: "Sistema de Tickets" })
     .setTimestamp();
 
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("open_ticket_general")
-      .setLabel("Abrir Ticket")
-      .setEmoji("🎫")
-      .setStyle(ButtonStyle.Success)
-  );
+   const styleMap = {
+    Primary: ButtonStyle.Primary,
+    Secondary: ButtonStyle.Secondary,
+    Success: ButtonStyle.Success,
+    Danger: ButtonStyle.Danger
+  };
 
-  await channel.send({ embeds: [embed], components: [row] });
-  res.redirect(`/dashboard/${guildId}`);
+  let enabledButtons = (config.ticketButtons || []).filter(btn => btn.enabled);
+
+  if (enabledButtons.length === 0) {
+    enabledButtons = [{
+      label: config.ticketButtonLabel || "Abrir Ticket",
+      emoji: config.ticketButtonEmoji || "🎫",
+      style: config.ticketButtonStyle || "Success"
+    }];
+  }
+
+  const rows = [];
+
+  for (let i = 0; i < enabledButtons.length; i += 5) {
+    const row = new ActionRowBuilder();
+
+    enabledButtons.slice(i, i + 5).forEach((btn, index) => {
+      const realIndex = i + index;
+
+      row.addComponents(
+        new ButtonBuilder()
+          .setCustomId(`open_ticket_${realIndex}`)
+          .setLabel(btn.label || "Abrir Ticket")
+          .setEmoji(btn.emoji || "🎫")
+          .setStyle(styleMap[btn.style] || ButtonStyle.Success)
+      );
+    });
+
+    rows.push(row);
+  }
+await channel.send({
+  embeds: [embed],
+  components: rows
 });
 
+return res.redirect(`/dashboard/${guildId}/tickets`);
+});
 app.get("/invite", (req, res) => {
   const url =
     "https://discord.com/oauth2/authorize" +
@@ -247,8 +293,16 @@ async function sendLog(guild, config, embed, files = []) {
 
 client.on("interactionCreate", async interaction => {
   try {
-    if (interaction.isButton() && interaction.customId === "open_ticket_general") {
+  if (
+  interaction.isButton() &&
+  interaction.customId.startsWith("open_ticket_")
+) {
       const config = await GuildConfig.findOne({ guildId: interaction.guild.id });
+const buttonIndex = Number(interaction.customId.replace("open_ticket_", ""));
+
+const enabledButtons = (config.ticketButtons || []).filter(btn => btn.enabled);
+
+const selectedButton = enabledButtons[buttonIndex];
 
       if (!config || !config.ticketsEnabled) {
         return interaction.reply({
@@ -314,9 +368,10 @@ client.on("interactionCreate", async interaction => {
         permissionOverwrites: overwrites
       });
 
-      const welcomeRaw =
-        config.ticketWelcomeMessage ||
-        "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
+    const welcomeRaw =
+  selectedButton?.welcomeMessage ||
+  config.ticketWelcomeMessage ||
+  "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
 
       const welcomeMessage = replaceVars(welcomeRaw, interaction, ticketChannel);
 
@@ -409,7 +464,13 @@ client.on("interactionCreate", async interaction => {
       const embed = new EmbedBuilder()
         .setTitle("🙋 Ticket reclamado")
         .setColor(config.ticketEmbedColor || "#23a559")
-        .setDescription(`Este ticket fue reclamado por ${interaction.user}.`)
+        .setDescription(
+`👮 Staff asignado: ${interaction.user}
+
+Este ticket ahora está siendo atendido.
+
+Por favor espere una respuesta.`
+)
         .setTimestamp();
 
       await interaction.reply({ embeds: [embed] });
