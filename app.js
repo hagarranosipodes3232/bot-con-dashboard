@@ -4,6 +4,7 @@ const express = require("express");
 const session = require("express-session");
 const axios = require("axios");
 const mongoose = require("mongoose");
+const discordTranscripts = require("discord-html-transcripts");
 
 const GuildConfig = require("./models/GuildConfig");
 
@@ -15,7 +16,10 @@ const {
   ButtonBuilder,
   ButtonStyle,
   ChannelType,
-  PermissionsBitField
+  PermissionsBitField,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle
 } = require("discord.js");
 
 const app = express();
@@ -39,9 +43,7 @@ app.use(session({
   saveUninitialized: false
 }));
 
-app.get("/", (req, res) => {
-  res.render("home");
-});
+app.get("/", (req, res) => res.render("home"));
 
 app.get("/login", (req, res) => {
   const url =
@@ -56,7 +58,6 @@ app.get("/login", (req, res) => {
 
 app.get("/callback", async (req, res) => {
   const code = req.query.code;
-
   if (!code) return res.send("❌ No llegó el código de Discord.");
 
   try {
@@ -69,11 +70,7 @@ app.get("/callback", async (req, res) => {
         code,
         redirect_uri: process.env.BASE_URL + "/callback"
       }),
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-        }
-      }
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
     req.session.access_token = tokenRes.data.access_token;
@@ -98,9 +95,7 @@ app.get("/servers", async (req, res) => {
 
     const guilds = guildsRes.data.filter(guild => {
       const perms = BigInt(guild.permissions);
-      const ADMIN = 0x8n;
-      const MANAGE_GUILD = 0x20n;
-      return (perms & ADMIN) === ADMIN || (perms & MANAGE_GUILD) === MANAGE_GUILD;
+      return (perms & 0x8n) === 0x8n || (perms & 0x20n) === 0x20n;
     });
 
     res.render("servers", {
@@ -119,14 +114,10 @@ app.get("/dashboard/:guildId", async (req, res) => {
 
   const guildId = req.params.guildId;
   const guild = client.guilds.cache.get(guildId);
-
   if (!guild) return res.send("❌ El bot no está en este servidor.");
 
   let config = await GuildConfig.findOne({ guildId });
-
-  if (!config) {
-    config = await GuildConfig.create({ guildId });
-  }
+  if (!config) config = await GuildConfig.create({ guildId });
 
   const categories = guild.channels.cache
     .filter(ch => ch.type === ChannelType.GuildCategory)
@@ -177,36 +168,23 @@ async function saveTicketConfig(guildId, body, forceEnabled = false) {
 }
 
 app.post("/dashboard/:guildId/tickets", async (req, res) => {
-  const guildId = req.params.guildId;
-
-  await saveTicketConfig(guildId, req.body, false);
-
-  res.redirect(`/dashboard/${guildId}`);
+  await saveTicketConfig(req.params.guildId, req.body, false);
+  res.redirect(`/dashboard/${req.params.guildId}`);
 });
 
 app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
   const guildId = req.params.guildId;
   const guild = client.guilds.cache.get(guildId);
-
   if (!guild) return res.send("❌ El bot no está en este servidor.");
 
-  const canalId = req.body.ticketPanelChannelId;
-
-  if (!canalId) {
-    return res.send("❌ Seleccioná un canal del panel primero.");
-  }
-
-  const channel = guild.channels.cache.get(canalId);
-
-  if (!channel) {
-    return res.send("❌ El canal seleccionado no existe o el bot no lo puede ver.");
-  }
+  const channel = guild.channels.cache.get(req.body.ticketPanelChannelId);
+  if (!channel) return res.send("❌ Seleccioná un canal del panel primero.");
 
   const config = await saveTicketConfig(guildId, req.body, true);
 
   const embed = new EmbedBuilder()
     .setTitle(req.body.ticketPanelName || config.ticketPanelName || "Panel de Tickets")
-    .setDescription(req.body.ticketPanelMessage || config.ticketPanelMessage || "Usá el botón de abajo para abrir un ticket.")
+    .setDescription(req.body.ticketPanelMessage || config.ticketPanelMessage)
     .setColor(req.body.ticketEmbedColor || config.ticketEmbedColor || "#23a559");
 
   const row = new ActionRowBuilder().addComponents(
@@ -217,33 +195,28 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
       .setStyle(ButtonStyle.Success)
   );
 
-  await channel.send({
-    embeds: [embed],
-    components: [row]
-  });
-
+  await channel.send({ embeds: [embed], components: [row] });
   res.redirect(`/dashboard/${guildId}`);
 });
 
 app.get("/invite", (req, res) => {
-  const permissions = "8";
-
   const url =
     "https://discord.com/oauth2/authorize" +
     `?client_id=${process.env.CLIENT_ID}` +
-    `&permissions=${permissions}` +
+    "&permissions=8" +
     "&scope=bot%20applications.commands";
 
   res.redirect(url);
 });
 
+function getOwnerIdFromTopic(topic) {
+  return topic?.match(/owner=(\d+)/)?.[1] || null;
+}
+
 client.on("interactionCreate", async interaction => {
   try {
-    if (!interaction.isButton()) return;
-
-    if (interaction.customId === "open_ticket_general") {
-      const guildId = interaction.guild.id;
-      const config = await GuildConfig.findOne({ guildId });
+    if (interaction.isButton() && interaction.customId === "open_ticket_general") {
+      const config = await GuildConfig.findOne({ guildId: interaction.guild.id });
 
       if (!config || !config.ticketsEnabled) {
         return interaction.reply({
@@ -265,9 +238,7 @@ client.on("interactionCreate", async interaction => {
         });
       }
 
-      const namePattern = config.ticketNamePattern || "ticket-{user.username}";
-
-      const ticketName = namePattern
+      const ticketName = (config.ticketNamePattern || "ticket-{user.username}")
         .replaceAll("{number}", Date.now().toString().slice(-5))
         .replaceAll("{user.username}", interaction.user.username)
         .replaceAll("{user}", interaction.user.username)
@@ -307,16 +278,12 @@ client.on("interactionCreate", async interaction => {
         name: ticketName,
         type: ChannelType.GuildText,
         parent: config.ticketCategoryId || null,
-        topic: `owner=${interaction.user.id};status=open`,
+        topic: `owner=${interaction.user.id};status=open;claimed=none`,
         permissionOverwrites: overwrites
       });
 
-      const welcomeRaw =
-        config.ticketWelcomeMessage && config.ticketWelcomeMessage.trim().length > 0
-          ? config.ticketWelcomeMessage
-          : "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
-
-      const welcomeMessage = welcomeRaw
+      const welcomeMessage = (config.ticketWelcomeMessage ||
+        "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.")
         .replaceAll("{user}", `${interaction.user}`)
         .replaceAll("{user.id}", interaction.user.id)
         .replaceAll("{user.username}", interaction.user.username)
@@ -330,6 +297,12 @@ client.on("interactionCreate", async interaction => {
         .setTimestamp();
 
       const ticketButtons = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("claim_ticket")
+          .setLabel("Reclamar Ticket")
+          .setEmoji("🙋")
+          .setStyle(ButtonStyle.Primary),
+
         new ButtonBuilder()
           .setCustomId("close_ticket")
           .setLabel("Cerrar")
@@ -349,16 +322,118 @@ client.on("interactionCreate", async interaction => {
       });
     }
 
-    if (interaction.customId === "close_ticket") {
+    if (interaction.isButton() && interaction.customId === "claim_ticket") {
+      const config = await GuildConfig.findOne({ guildId: interaction.guild.id });
+      const staffId = config?.supportRoleId || config?.staffRoleId;
+
+      if (!staffId || !interaction.member.roles.cache.has(staffId)) {
+        return interaction.reply({
+          content: "❌ Solo el rango de soporte puede reclamar tickets.",
+          ephemeral: true
+        });
+      }
+
+      const topic = interaction.channel.topic || "";
+
+      if (topic.includes("claimed=") && !topic.includes("claimed=none")) {
+        return interaction.reply({
+          content: "❌ Este ticket ya fue reclamado.",
+          ephemeral: true
+        });
+      }
+
+      await interaction.channel.setTopic(
+        topic.replace("claimed=none", `claimed=${interaction.user.id}`)
+      );
+
+      return interaction.reply({
+        content: `🙋 Ticket reclamado por ${interaction.user}.`
+      });
+    }
+
+    if (interaction.isButton() && interaction.customId === "close_ticket") {
+      const modal = new ModalBuilder()
+        .setCustomId("close_ticket_modal")
+        .setTitle("Cerrar ticket");
+
+      const reasonInput = new TextInputBuilder()
+        .setCustomId("close_reason")
+        .setLabel("Razón del cierre")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(true)
+        .setPlaceholder("Ejemplo: problema resuelto, compra finalizada...");
+
+      modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+
+      return interaction.showModal(modal);
+    }
+
+    if (interaction.isModalSubmit() && interaction.customId === "close_ticket_modal") {
+      const reason = interaction.fields.getTextInputValue("close_reason");
+      const ownerId = getOwnerIdFromTopic(interaction.channel.topic);
+      const user = ownerId ? await client.users.fetch(ownerId).catch(() => null) : null;
+
       await interaction.reply({
-        content: "🔒 Cerrando ticket en 5 segundos...",
+        content: "🔒 Cerrando ticket y generando transcript...",
         ephemeral: true
       });
+
+      const transcript = await discordTranscripts.createTranscript(interaction.channel, {
+        limit: -1,
+        returnType: "attachment",
+        filename: `transcript-${interaction.channel.name}.html`
+      });
+
+      const ratingRow = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("rating_excellent")
+          .setLabel("Excelente")
+          .setStyle(ButtonStyle.Success),
+
+        new ButtonBuilder()
+          .setCustomId("rating_good")
+          .setLabel("Bueno")
+          .setStyle(ButtonStyle.Primary),
+
+        new ButtonBuilder()
+          .setCustomId("rating_bad")
+          .setLabel("Mala")
+          .setStyle(ButtonStyle.Danger)
+      );
+
+      if (user) {
+        await user.send({
+          content:
+            `📩 Tu ticket **${interaction.channel.name}** fue cerrado.\n\n` +
+            `📝 **Razón:** ${reason}\n` +
+            `👤 **Cerrado por:** ${interaction.user}\n\n` +
+            `Adjuntamos el transcript del ticket. Abajo podés calificar la atención.`,
+          files: [transcript],
+          components: [ratingRow]
+        }).catch(() => {});
+      }
 
       setTimeout(() => {
         interaction.channel.delete().catch(() => {});
       }, 5000);
+
+      return;
     }
+
+    if (
+      interaction.isButton() &&
+      ["rating_excellent", "rating_good", "rating_bad"].includes(interaction.customId)
+    ) {
+      let rating = "Mala";
+      if (interaction.customId === "rating_excellent") rating = "Excelente";
+      if (interaction.customId === "rating_good") rating = "Bueno";
+
+      return interaction.reply({
+        content: `✅ Gracias por calificar la atención como **${rating}**.`,
+        ephemeral: true
+      });
+    }
+
   } catch (error) {
     console.log("❌ Error interactionCreate:", error);
 
@@ -377,6 +452,6 @@ client.once("clientReady", () => {
 
 client.login(process.env.TOKEN);
 
-app.listen(3000, () => {
-  console.log("🌐 Dashboard online en http://localhost:3000");
+app.listen(process.env.PORT || 3000, () => {
+  console.log(`🌐 Dashboard online en puerto ${process.env.PORT || 3000}`);
 });
