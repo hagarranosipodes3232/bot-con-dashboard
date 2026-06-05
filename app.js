@@ -160,13 +160,7 @@ for (let i = 1; i <= buttonCount; i++) {
     });
   }
 if (ticketButtons.length === 0) {
-  ticketButtons.push({
-    enabled: true,
-    label: "Abrir Ticket",
-    emoji: "🎫",
-    style: "Success",
-    welcomeMessage: ""
-  });
+  console.log("No hay botones configurados");
 }
   return GuildConfig.findOneAndUpdate(
     { guildId },
@@ -199,11 +193,13 @@ ticketButtons
 }
 
 app.post("/dashboard/:guildId/tickets", async (req, res) => {
+console.log(req.body);
   await saveTicketConfig(req.params.guildId, req.body, false);
   res.redirect(`/dashboard/${req.params.guildId}`);
 });
 
 app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
+console.log(req.body);
   const guildId = req.params.guildId;
   const guild = client.guilds.cache.get(guildId);
   if (!guild) return res.send("❌ El bot no está en este servidor.");
@@ -212,6 +208,8 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
   if (!channel) return res.send("❌ Seleccioná un canal del panel primero.");
 
   const config = await saveTicketConfig(guildId, req.body, true);
+console.log("BOTONES GUARDADOS:");
+console.log(config.ticketButtons);
 
   const embed = new EmbedBuilder()
     .setAuthor({ name: guild.name, iconURL: guild.iconURL() || undefined })
@@ -230,14 +228,9 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
 
   let enabledButtons = (config.ticketButtons || []).filter(btn => btn.enabled);
 
-  if (enabledButtons.length === 0) {
-    enabledButtons = [{
-      label: config.ticketButtonLabel || "Abrir Ticket",
-      emoji: config.ticketButtonEmoji || "🎫",
-      style: config.ticketButtonStyle || "Success"
-    }];
-  }
-
+ if (enabledButtons.length === 0) {
+  return res.send("❌ Tenés que agregar al menos un botón antes de enviar el panel.");
+}
   const rows = [];
 
   for (let i = 0; i < enabledButtons.length; i += 5) {
