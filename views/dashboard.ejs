@@ -157,39 +157,53 @@ placeholder="Mensaje que verá el usuario dentro del ticket..."><%= config.ticke
 
         </section>
 
-        <aside class="preview-box">
-          <h2>👀 Vista previa</h2>
+     <aside class="preview-box">
+  <h2>👀 Vista previa</h2>
 
-          <div class="discord-preview">
-            <div class="preview-author">🤖 012 Bot <span>APP</span></div>
+  <h3 class="preview-section-title">📢 Panel en el canal</h3>
 
-            <div class="preview-embed" id="previewEmbed">
-              <h3 id="previewTitle"><%= config.ticketPanelName || 'Sistema de Tickets — 012 Shop' %></h3>
-              <p id="previewText"><%= config.ticketPanelMessage || 'Selecciona una opción para abrir un ticket.' %></p>
-            </div>
+  <div class="discord-preview">
+    <div class="preview-author">
+      🤖 012 Bot <span>APP</span>
+    </div>
 
-            <div class="discord-buttons">
-              <button type="button" class="discord-btn" id="previewButton">
-                <%= config.ticketButtonEmoji || '🎫' %> <%= config.ticketButtonLabel || 'Abrir Ticket' %>
-              </button>
-            </div>
-          </div>
+    <div class="preview-embed" id="previewEmbed">
+      <h3 id="previewTitle"><%= config.ticketPanelName || 'Sistema de Tickets — 012 Shop' %></h3>
+      <p id="previewText"><%= config.ticketPanelMessage || 'Selecciona una opción para abrir un ticket.' %></p>
+    </div>
 
-          <div class="discord-preview ticket-message-preview">
-            <div class="preview-author">🎫 Ticket creado</div>
+    <div class="discord-buttons">
+      <button type="button" class="discord-btn" id="previewButton">
+        <%= config.ticketButtonEmoji || '🎫' %> <%= config.ticketButtonLabel || 'Abrir Ticket' %>
+      </button>
+    </div>
+  </div>
 
-            <div class="preview-embed" id="previewTicketEmbed">
-              <h3>Bienvenido a tu ticket</h3>
-              <p id="welcomePreview"><%= config.ticketWelcomeMessage || 'Hola {user}, un miembro del staff te atenderá pronto.' %></p>
-            </div>
+  <h3 class="preview-section-title">🎫 Ticket abierto por el usuario</h3>
 
-            <div class="discord-buttons">
-              <button type="button" class="discord-btn danger">🔒 Cerrar Ticket</button>
-              <button type="button" class="discord-btn primary">🙋 Reclamar Ticket</button>
-            </div>
-          </div>
-        </aside>
+  <div class="discord-preview ticket-message-preview">
+    <div class="preview-author">
+      🤖 012 Bot <span>APP</span>
+    </div>
 
+    <div class="preview-embed" id="previewTicketEmbed">
+      <h3>🎫 Ticket abierto</h3>
+
+      <p id="welcomePreview"><%= config.ticketWelcomeMessage || 'Hola {user}, un miembro del staff te atenderá pronto.' %></p>
+
+      <div class="preview-fields">
+        <div><strong>👤 Usuario</strong><br>@Usuario</div>
+        <div><strong>🆔 ID</strong><br>123456789</div>
+        <div><strong>📌 Estado</strong><br>Abierto</div>
+      </div>
+    </div>
+
+    <div class="discord-buttons">
+      <button type="button" class="discord-btn primary">🙋 Reclamar Ticket</button>
+      <button type="button" class="discord-btn danger">🔒 Cerrar Ticket</button>
+    </div>
+  </div>
+</aside>
       </div>
 
     </form>

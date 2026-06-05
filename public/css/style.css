@@ -517,3 +517,31 @@ button:hover {
   background:#22c55e;
   box-shadow:0 0 12px #22c55e;
 }
+.preview-section-title {
+  margin: 18px 0 10px;
+  color: #dbeafe;
+  font-size: 16px;
+}
+
+.preview-fields {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.preview-fields div {
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 13px;
+}
+
+.discord-btn.primary {
+  background: #5865f2;
+}
+
+.discord-btn.danger {
+  background: #ed4245;
+}
