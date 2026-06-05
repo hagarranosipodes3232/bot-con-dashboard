@@ -146,11 +146,8 @@ app.get("/dashboard/:guildId", async (req, res) => {
 });
 
 async function saveTicketConfig(guildId, body, forceEnabled = false) {
-  const ticketButtons = [];
-
- const buttonCount = Math.min(Number(body.buttonCount || 0), 20);
-
-for (let i = 1; i <= buttonCount; i++) {
+for (let i = 1; i <= 20; i++) {
+  if (body[`buttonLabel_${i}`] || body[`buttonEmoji_${i}`] || body[`buttonWelcome_${i}`]) {
     ticketButtons.push({
       enabled: true,
       label: body[`buttonLabel_${i}`] || `Ticket ${i}`,
@@ -159,9 +156,8 @@ for (let i = 1; i <= buttonCount; i++) {
       welcomeMessage: body[`buttonWelcome_${i}`] || ""
     });
   }
-if (ticketButtons.length === 0) {
-  console.log("No hay botones configurados");
 }
+  const ticketButtons = [];
   return GuildConfig.findOneAndUpdate(
     { guildId },
     {
