@@ -159,6 +159,15 @@ for (let i = 1; i <= buttonCount; i++) {
       welcomeMessage: body[`buttonWelcome_${i}`] || ""
     });
   }
+if (ticketButtons.length === 0) {
+  ticketButtons.push({
+    enabled: true,
+    label: "Abrir Ticket",
+    emoji: "🎫",
+    style: "Success",
+    welcomeMessage: ""
+  });
+}
   return GuildConfig.findOneAndUpdate(
     { guildId },
     {

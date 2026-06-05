@@ -82,22 +82,7 @@
             <textarea class="textarea big" name="ticketPanelMessage" id="panelMessage"
 placeholder="Escribí el mensaje que aparecerá en el panel de tickets..."><%= config.ticketPanelMessage || '' %></textarea>
 
-            <label>Texto del botón</label>
-            <input class="input" name="ticketButtonLabel" id="ticketButtonLabel"
-              value="<%= config.ticketButtonLabel || 'Abrir Ticket' %>">
-
-            <label>Emoji del botón</label>
-            <input class="input" name="ticketButtonEmoji" id="ticketButtonEmoji"
-              value="<%= config.ticketButtonEmoji || '🎫' %>">
-
-            <label>Color del botón</label>
-            <select class="input" name="ticketButtonStyle" id="ticketButtonStyle">
-              <option value="Success" <%= config.ticketButtonStyle === "Success" ? "selected" : "" %>>Verde</option>
-              <option value="Primary" <%= config.ticketButtonStyle === "Primary" ? "selected" : "" %>>Azul</option>
-              <option value="Secondary" <%= config.ticketButtonStyle === "Secondary" ? "selected" : "" %>>Gris</option>
-              <option value="Danger" <%= config.ticketButtonStyle === "Danger" ? "selected" : "" %>>Rojo</option>
-            </select>
-          </div>
+                     </div>
 
           <div class="card">
             <h2>⚙️ Configuración del Ticket</h2>
@@ -218,13 +203,8 @@ placeholder="Mensaje que verá el usuario dentro del ticket..."><%= config.ticke
       <h3 id="previewTitle"><%= config.ticketPanelName || 'Sistema de Tickets — 012 Shop' %></h3>
       <p id="previewText"><%= config.ticketPanelMessage || 'Selecciona una opción para abrir un ticket.' %></p>
     </div>
-
-    <div class="discord-buttons">
-      <button type="button" class="discord-btn" id="previewButton">
-        <%= config.ticketButtonEmoji || '🎫' %> <%= config.ticketButtonLabel || 'Abrir Ticket' %>
-      </button>
-    </div>
-  </div>
+<div class="discord-buttons" id="previewButtonsContainer"></div>
+     </div>
 
   <h3 class="preview-section-title">🎫 Ticket abierto por el usuario</h3>
 
@@ -269,46 +249,77 @@ const welcomePreview = document.getElementById("welcomePreview");
 const previewEmbed = document.getElementById("previewEmbed");
 const previewTicketEmbed = document.getElementById("previewTicketEmbed");
 
-const ticketButtonLabel = document.getElementById("ticketButtonLabel");
-const ticketButtonEmoji = document.getElementById("ticketButtonEmoji");
-const ticketButtonStyle = document.getElementById("ticketButtonStyle");
-const previewButton = document.getElementById("previewButton");
-
-function updatePreview() {
-  previewTitle.innerText = panelName.value || "Sistema de Tickets — 012 Shop";
-  previewText.innerText = panelMessage.value || "Selecciona una opción para abrir un ticket.";
-  welcomePreview.innerText = welcomeMessage.value || "Hola {user}, un miembro del staff te atenderá pronto.";
-
-  previewButton.innerText = `${ticketButtonEmoji.value || "🎫"} ${ticketButtonLabel.value || "Abrir Ticket"}`;
-
-  const selectedColor = document.querySelector("input[name='ticketEmbedColor']:checked");
-
-  if (selectedColor) {
-    previewEmbed.style.borderLeftColor = selectedColor.value;
-    previewTicketEmbed.style.borderLeftColor = selectedColor.value;
-  }
-
-  if (ticketButtonStyle.value === "Success") previewButton.style.background = "#23a559";
-  if (ticketButtonStyle.value === "Primary") previewButton.style.background = "#5865f2";
-  if (ticketButtonStyle.value === "Secondary") previewButton.style.background = "#4e5058";
-  if (ticketButtonStyle.value === "Danger") previewButton.style.background = "#ed4245";
-}
-
-panelName.addEventListener("input", updatePreview);
-panelMessage.addEventListener("input", updatePreview);
-welcomeMessage.addEventListener("input", updatePreview);
-ticketButtonLabel.addEventListener("input", updatePreview);
-ticketButtonEmoji.addEventListener("input", updatePreview);
-ticketButtonStyle.addEventListener("change", updatePreview);
-
-document.querySelectorAll("input[name='ticketEmbedColor']").forEach(input => {
-  input.addEventListener("change", updatePreview);
-});
-
-updatePreview();
 const buttonsContainer = document.getElementById("buttonsContainer");
 const addButton = document.getElementById("addButton");
 const buttonCountInput = document.getElementById("buttonCount");
+
+const previewButtonsContainer =
+document.getElementById("previewButtonsContainer");
+
+function getButtonColor(style){
+  if(style==="Primary") return "#5865f2";
+  if(style==="Secondary") return "#4e5058";
+  if(style==="Danger") return "#ed4245";
+  return "#23a559";
+}
+
+function updatePreview(){
+
+  previewTitle.innerText =
+    panelName.value || "Sistema de Tickets";
+
+  previewText.innerText =
+    panelMessage.value || "";
+
+  welcomePreview.innerText =
+    welcomeMessage.value || "";
+
+  const selectedColor =
+  document.querySelector(
+    "input[name='ticketEmbedColor']:checked"
+  );
+
+  if(selectedColor){
+    previewEmbed.style.borderLeftColor =
+      selectedColor.value;
+
+    previewTicketEmbed.style.borderLeftColor =
+      selectedColor.value;
+  }
+
+  previewButtonsContainer.innerHTML = "";
+
+  document
+  .querySelectorAll(".button-config-card")
+  .forEach(card=>{
+
+    const label =
+      card.querySelector(
+        'input[name^="buttonLabel_"]'
+      )?.value || "Ticket";
+
+    const emoji =
+      card.querySelector(
+        'input[name^="buttonEmoji_"]'
+      )?.value || "🎫";
+
+    const style =
+      card.querySelector(
+        'select[name^="buttonStyle_"]'
+      )?.value || "Success";
+
+    const btn =
+      document.createElement("button");
+
+    btn.type="button";
+    btn.className="discord-btn";
+    btn.innerText=`${emoji} ${label}`;
+    btn.style.background =
+      getButtonColor(style);
+
+    previewButtonsContainer.appendChild(btn);
+  });
+}
 
 function refreshButtonNumbers() {
   const cards = buttonsContainer.querySelectorAll(".button-config-card");
@@ -324,8 +335,10 @@ function refreshButtonNumbers() {
     });
   });
 
-  buttonCountInput.value = cards.length;
+buttonCountInput.value = cards.length;
+updatePreview();
 }
+
 
 addButton.addEventListener("click", () => {
   const current = buttonsContainer.querySelectorAll(".button-config-card").length;
@@ -364,9 +377,23 @@ addButton.addEventListener("click", () => {
 
     <button type="button" class="btn red remove-button">🗑️ Eliminar botón</button>
   `;
+buttonsContainer.appendChild(card);
 
-  buttonsContainer.appendChild(card);
-  refreshButtonNumbers();
+card.querySelectorAll(
+"input,textarea,select"
+).forEach(el=>{
+  el.addEventListener(
+    "input",
+    updatePreview
+  );
+  el.addEventListener(
+    "change",
+    updatePreview
+  );
+});
+
+refreshButtonNumbers();
+updatePreview();
 });
 
 buttonsContainer.addEventListener("click", e => {
@@ -377,6 +404,22 @@ buttonsContainer.addEventListener("click", e => {
 });
 
 refreshButtonNumbers();
+document
+.querySelectorAll(
+"input,textarea,select"
+)
+.forEach(el=>{
+  el.addEventListener(
+    "input",
+    updatePreview
+  );
+  el.addEventListener(
+    "change",
+    updatePreview
+  );
+});
+
+updatePreview();
 </script>
 
 </body>
