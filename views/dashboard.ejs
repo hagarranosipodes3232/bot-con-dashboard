@@ -122,57 +122,51 @@ placeholder="Escribí el mensaje que aparecerá en el panel de tickets..."><%= c
           </div>
 <div class="card">
   <h2>🎛 Botones del Panel</h2>
+
   <p style="color:#aaa; margin-bottom:15px;">
-    Podés crear hasta 20 botones. Cada botón puede tener texto, emoji, color y mensaje propio.
+    Agregá botones personalizados. Máximo 20 botones.
   </p>
 
-  <% for (let i = 1; i <= 20; i++) { 
-    const btn = config.ticketButtons?.[i - 1] || {};
-  %>
+  <div id="buttonsContainer">
+    <% 
+      const savedButtons = config.ticketButtons || [];
+      savedButtons.forEach((btn, index) => { 
+        const i = index + 1;
+    %>
 
-    <div class="button-config-card">
-      <h3>Botón <%= i %></h3>
+      <div class="button-config-card">
+        <h3>Botón <%= i %></h3>
 
-      <label>
-        <input
-          type="checkbox"
-          name="buttonEnabled_<%= i %>"
-          <%= btn.enabled ? "checked" : "" %>
-        >
-        Activar botón
-      </label>
+        <input type="hidden" name="buttonEnabled_<%= i %>" value="on">
 
-      <label>Texto del botón</label>
-      <input
-        class="input"
-        name="buttonLabel_<%= i %>"
-        value="<%= btn.label || `Ticket ${i}` %>"
-      >
+        <label>Texto del botón</label>
+        <input class="input" name="buttonLabel_<%= i %>" value="<%= btn.label || `Ticket ${i}` %>">
 
-      <label>Emoji</label>
-      <input
-        class="input"
-        name="buttonEmoji_<%= i %>"
-        value="<%= btn.emoji || '🎫' %>"
-      >
+        <label>Emoji</label>
+        <input class="input" name="buttonEmoji_<%= i %>" value="<%= btn.emoji || '🎫' %>">
 
-      <label>Color del botón</label>
-      <select class="input" name="buttonStyle_<%= i %>">
-        <option value="Success" <%= btn.style === "Success" ? "selected" : "" %>>Verde</option>
-        <option value="Primary" <%= btn.style === "Primary" ? "selected" : "" %>>Azul</option>
-        <option value="Secondary" <%= btn.style === "Secondary" ? "selected" : "" %>>Gris</option>
-        <option value="Danger" <%= btn.style === "Danger" ? "selected" : "" %>>Rojo</option>
-      </select>
+        <label>Color del botón</label>
+        <select class="input" name="buttonStyle_<%= i %>">
+          <option value="Success" <%= btn.style === "Success" ? "selected" : "" %>>Verde</option>
+          <option value="Primary" <%= btn.style === "Primary" ? "selected" : "" %>>Azul</option>
+          <option value="Secondary" <%= btn.style === "Secondary" ? "selected" : "" %>>Gris</option>
+          <option value="Danger" <%= btn.style === "Danger" ? "selected" : "" %>>Rojo</option>
+        </select>
 
-      <label>Mensaje cuando se abre este ticket</label>
-      <textarea
-        class="textarea"
-        name="buttonWelcome_<%= i %>"
-        placeholder="Mensaje propio de este botón..."
-      ><%= btn.welcomeMessage || '' %></textarea>
-    </div>
+        <label>Mensaje cuando se abre este ticket</label>
+        <textarea class="textarea" name="buttonWelcome_<%= i %>"><%= btn.welcomeMessage || '' %></textarea>
 
-  <% } %>
+        <button type="button" class="btn red remove-button">🗑️ Eliminar botón</button>
+      </div>
+
+    <% }) %>
+  </div>
+
+  <input type="hidden" id="buttonCount" name="buttonCount" value="<%= savedButtons.length || 0 %>">
+
+  <button type="button" class="btn" id="addButton">
+    ➕ Agregar botón
+  </button>
 </div>
           <div class="card">
             <h2>👋 Mensaje de Bienvenida</h2>
@@ -312,6 +306,77 @@ document.querySelectorAll("input[name='ticketEmbedColor']").forEach(input => {
 });
 
 updatePreview();
+const buttonsContainer = document.getElementById("buttonsContainer");
+const addButton = document.getElementById("addButton");
+const buttonCountInput = document.getElementById("buttonCount");
+
+function refreshButtonNumbers() {
+  const cards = buttonsContainer.querySelectorAll(".button-config-card");
+
+  cards.forEach((card, index) => {
+    const i = index + 1;
+    card.querySelector("h3").innerText = `Botón ${i}`;
+
+    card.querySelectorAll("input, textarea, select").forEach(input => {
+      if (input.name) {
+        input.name = input.name.replace(/_\d+$/, `_${i}`);
+      }
+    });
+  });
+
+  buttonCountInput.value = cards.length;
+}
+
+addButton.addEventListener("click", () => {
+  const current = buttonsContainer.querySelectorAll(".button-config-card").length;
+
+  if (current >= 20) {
+    alert("Máximo 20 botones.");
+    return;
+  }
+
+  const i = current + 1;
+
+  const card = document.createElement("div");
+  card.className = "button-config-card";
+
+  card.innerHTML = `
+    <h3>Botón ${i}</h3>
+
+    <input type="hidden" name="buttonEnabled_${i}" value="on">
+
+    <label>Texto del botón</label>
+    <input class="input" name="buttonLabel_${i}" value="Ticket ${i}">
+
+    <label>Emoji</label>
+    <input class="input" name="buttonEmoji_${i}" value="🎫">
+
+    <label>Color del botón</label>
+    <select class="input" name="buttonStyle_${i}">
+      <option value="Success">Verde</option>
+      <option value="Primary">Azul</option>
+      <option value="Secondary">Gris</option>
+      <option value="Danger">Rojo</option>
+    </select>
+
+    <label>Mensaje cuando se abre este ticket</label>
+    <textarea class="textarea" name="buttonWelcome_${i}" placeholder="Mensaje propio de este botón..."></textarea>
+
+    <button type="button" class="btn red remove-button">🗑️ Eliminar botón</button>
+  `;
+
+  buttonsContainer.appendChild(card);
+  refreshButtonNumbers();
+});
+
+buttonsContainer.addEventListener("click", e => {
+  if (e.target.classList.contains("remove-button")) {
+    e.target.closest(".button-config-card").remove();
+    refreshButtonNumbers();
+  }
+});
+
+refreshButtonNumbers();
 </script>
 
 </body>

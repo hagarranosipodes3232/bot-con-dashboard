@@ -148,9 +148,11 @@ app.get("/dashboard/:guildId", async (req, res) => {
 async function saveTicketConfig(guildId, body, forceEnabled = false) {
   const ticketButtons = [];
 
-  for (let i = 1; i <= 20; i++) {
+ const buttonCount = Math.min(Number(body.buttonCount || 0), 20);
+
+for (let i = 1; i <= buttonCount; i++) {
     ticketButtons.push({
-      enabled: body[`buttonEnabled_${i}`] === "on",
+      enabled: true,
       label: body[`buttonLabel_${i}`] || `Ticket ${i}`,
       emoji: body[`buttonEmoji_${i}`] || "🎫",
       style: body[`buttonStyle_${i}`] || "Success",
