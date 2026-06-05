@@ -188,7 +188,7 @@ ticketButtonEmoji: body.ticketButtonEmoji || "🎫",
 ticketButtonStyle: body.ticketButtonStyle || "Success",
 ticketButtons
     },
-    { upsert: true, new: true }
+   { upsert: true, new: true, returnDocument: "after" }
   );
 }
 
@@ -208,6 +208,8 @@ console.log(req.body);
   if (!channel) return res.send("❌ Seleccioná un canal del panel primero.");
 
   const config = await saveTicketConfig(guildId, req.body, true);
+const realConfig = await GuildConfig.findOne({ guildId });
+console.log("BOTONES REALES:", realConfig.ticketButtons);
 console.log("BOTONES GUARDADOS:");
 console.log(config.ticketButtons);
 
@@ -225,9 +227,7 @@ console.log(config.ticketButtons);
     Success: ButtonStyle.Success,
     Danger: ButtonStyle.Danger
   };
-
-  let enabledButtons = (config.ticketButtons || []).filter(btn => btn.enabled);
-
+let enabledButtons = (realConfig.ticketButtons || []).filter(btn => btn.enabled);
  if (enabledButtons.length === 0) {
   return res.send("❌ Tenés que agregar al menos un botón antes de enviar el panel.");
 }
