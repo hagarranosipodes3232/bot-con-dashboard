@@ -557,3 +557,21 @@ button:hover {
   margin-bottom: 12px;
   color: #fff;
 }
+.preview-box {
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
+  padding-right: 18px;
+}
+
+.preview-box::-webkit-scrollbar {
+  width: 8px;
+}
+
+.preview-box::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #5865f2, #7c3aed);
+  border-radius: 999px;
+}
+
+.preview-box::-webkit-scrollbar-track {
+  background: rgba(255,255,255,.04);
+}
