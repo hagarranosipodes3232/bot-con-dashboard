@@ -110,7 +110,9 @@ app.get("/servers", async (req, res) => {
     res.send("❌ Error cargando servidores.");
   }
 });
-
+app.get("/dashboard/:guildId/tickets", async (req, res) => {
+  res.redirect(`/dashboard/${req.params.guildId}`);
+});
 app.get("/dashboard/:guildId", async (req, res) => {
   if (!req.session.access_token) return res.redirect("/login");
 
