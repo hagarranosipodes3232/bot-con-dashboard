@@ -5,21 +5,60 @@
   <title>Tickets Dashboard</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body>
 <div class="layout">
+
   <aside class="sidebar">
-    <div class="logo">🤖 012 Bot</div>
+    <div class="logo">
+  <div class="logo-icon">🤖</div>
+  <div>
+    <div class="logo-title">012 Bot</div>
+    <div class="logo-status">
+      <span class="status-dot"></span>
+      Online
+    </div>
+  </div>
+</div>
+
     <div class="menu">
-      <a href="/servers">Inicio</a>
-      <a class="active">Tickets</a>
-      <a>Verificación</a>
-      <a>Logs</a>
-      <a>Configuración</a>
+      <a href="/servers">🏠 Inicio</a>
+      <a class="active">🎫 Tickets</a>
+      <a>✅ Verificación</a>
+      <a>📜 Logs</a>
+      <a>⚙️ Configuración</a>
     </div>
   </aside>
 
   <main class="main">
-    <h1>Ticketing › <%= guild.name %> | Tickets</h1>
+
+    <h1>🎫 Ticketing › <%= guild.name %></h1>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>🎫</h3>
+        <span>Tickets</span>
+        <strong>245</strong>
+      </div>
+
+      <div class="stat-card">
+        <h3>👥</h3>
+        <span>Miembros</span>
+        <strong><%= guild.memberCount || 0 %></strong>
+      </div>
+
+      <div class="stat-card">
+        <h3>⚡</h3>
+        <span>Bot</span>
+        <strong>Online</strong>
+      </div>
+
+      <div class="stat-card">
+        <h3>🛡️</h3>
+        <span>Servidor</span>
+        <strong><%= guild.name %></strong>
+      </div>
+    </div>
 
     <form id="ticketForm" method="POST" action="/dashboard/<%= guild.id %>/tickets">
 
@@ -32,6 +71,7 @@
 
             <label>Nombre del panel</label>
             <input class="input" name="ticketPanelName" id="panelName"
+              placeholder="Ej: Sistema de Tickets — 012 Shop"
               value="<%= config.ticketPanelName || '' %>">
 
             <label>Canal del panel</label>
@@ -65,7 +105,8 @@
             </div>
 
             <label>Mensaje del panel</label>
-            <textarea class="textarea big" name="ticketPanelMessage" id="panelMessage"><%= config.ticketPanelMessage || '' %></textarea>
+            <textarea class="textarea big" name="ticketPanelMessage" id="panelMessage"
+placeholder="Escribí el mensaje que aparecerá en el panel de tickets..."><%= config.ticketPanelMessage || '' %></textarea>
           </div>
 
           <div class="card">
@@ -85,7 +126,7 @@
             <input class="input" name="ticketNamePattern"
               value="<%= config.ticketNamePattern || 'ticket-{user.username}' %>">
 
-            <label>Límite de tickets</label>
+            <label>Límite de tickets por usuario</label>
             <input class="input" type="number" min="1" name="ticketLimit"
               value="<%= config.ticketLimit || 1 %>">
           </div>
@@ -94,7 +135,8 @@
             <h2>👋 Mensaje de Bienvenida</h2>
 
             <label>Mensaje cuando se abre un ticket</label>
-            <textarea class="textarea big" name="ticketWelcomeMessage"><%= config.ticketWelcomeMessage || '' %></textarea>
+            <textarea class="textarea big" name="ticketWelcomeMessage" id="welcomeMessage"
+placeholder="Mensaje que verá el usuario dentro del ticket..."><%= config.ticketWelcomeMessage || '' %></textarea>
 
             <small>Variables: {user}, {user.id}, {user.username}, {server.name}, {channel.name}</small>
           </div>
@@ -126,38 +168,62 @@
         </section>
 
         <aside class="preview-box">
-          <h3>Vista previa</h3>
+          <h2>👀 Vista previa</h2>
 
           <div class="discord-preview">
-            <div class="preview-author">🤖 012 Bot <span>APP</span></div>
-
-            <div class="preview-embed" id="previewEmbed">
-              <h3 id="previewTitle"><%= config.ticketPanelName || 'Panel de Tickets' %></h3>
-              <p id="previewText"><%= config.ticketPanelMessage || 'Usá el botón de abajo para abrir un ticket.' %></p>
+            <div class="preview-author">
+              🤖 012 Bot <span>APP</span>
             </div>
 
-            <button class="ticket-preview-btn">🎫 Abrir Ticket</button>
+            <div class="preview-embed" id="previewEmbed">
+              <h3 id="previewTitle"><%= config.ticketPanelName || 'Sistema de Tickets — 012 Shop' %></h3>
+              <p id="previewText"><%= config.ticketPanelMessage || 'Selecciona una opción para abrir un ticket.' %></p>
+            </div>
+
+            <div class="discord-buttons">
+              <button type="button" class="discord-btn">🎫 Abrir Ticket</button>
+            </div>
+          </div>
+
+          <div class="discord-preview ticket-message-preview">
+            <div class="preview-author">
+              🎫 Ticket creado
+            </div>
+
+            <div class="preview-embed">
+              <h3>Bienvenido a tu ticket</h3>
+              <p id="welcomePreview"><%= config.ticketWelcomeMessage || 'Hola {user}, un miembro del staff te atenderá pronto.' %></p>
+            </div>
           </div>
         </aside>
 
       </div>
 
     </form>
+
   </main>
 </div>
 
 <script>
 const panelName = document.getElementById("panelName");
 const panelMessage = document.getElementById("panelMessage");
+const welcomeMessage = document.getElementById("welcomeMessage");
+
 const previewTitle = document.getElementById("previewTitle");
 const previewText = document.getElementById("previewText");
+const welcomePreview = document.getElementById("welcomePreview");
 const previewEmbed = document.getElementById("previewEmbed");
 
 function updatePreview() {
-  previewTitle.innerText = panelName.value || "Panel de Tickets";
-  previewText.innerText = panelMessage.value || "Usá el botón de abajo para abrir un ticket.";
+  previewTitle.innerText = panelName.value || "Sistema de Tickets — 012 Shop";
+  previewText.innerText = panelMessage.value || "Selecciona una opción para abrir un ticket.";
+
+  if (welcomeMessage) {
+    welcomePreview.innerText = welcomeMessage.value || "Hola {user}, un miembro del staff te atenderá pronto.";
+  }
 
   const selectedColor = document.querySelector("input[name='ticketEmbedColor']:checked");
+
   if (selectedColor) {
     previewEmbed.style.borderLeftColor = selectedColor.value;
   }
@@ -165,6 +231,7 @@ function updatePreview() {
 
 panelName.addEventListener("input", updatePreview);
 panelMessage.addEventListener("input", updatePreview);
+welcomeMessage.addEventListener("input", updatePreview);
 
 document.querySelectorAll("input[name='ticketEmbedColor']").forEach(input => {
   input.addEventListener("change", updatePreview);
