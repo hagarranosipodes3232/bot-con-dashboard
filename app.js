@@ -43,7 +43,9 @@ app.use(session({
   saveUninitialized: false
 }));
 
-app.get("/", (req, res) => res.render("home"));
+app.get("/", (req, res) => {
+  res.render("home");
+});
 
 app.get("/login", (req, res) => {
   const url =
@@ -114,6 +116,7 @@ app.get("/dashboard/:guildId", async (req, res) => {
 
   const guildId = req.params.guildId;
   const guild = client.guilds.cache.get(guildId);
+
   if (!guild) return res.send("❌ El bot no está en este servidor.");
 
   let config = await GuildConfig.findOne({ guildId });
@@ -183,9 +186,12 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
   const config = await saveTicketConfig(guildId, req.body, true);
 
   const embed = new EmbedBuilder()
+    .setAuthor({ name: guild.name, iconURL: guild.iconURL() || undefined })
     .setTitle(req.body.ticketPanelName || config.ticketPanelName || "Panel de Tickets")
     .setDescription(req.body.ticketPanelMessage || config.ticketPanelMessage)
-    .setColor(req.body.ticketEmbedColor || config.ticketEmbedColor || "#23a559");
+    .setColor(req.body.ticketEmbedColor || config.ticketEmbedColor || "#23a559")
+    .setFooter({ text: "Sistema de Tickets" })
+    .setTimestamp();
 
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -209,8 +215,34 @@ app.get("/invite", (req, res) => {
   res.redirect(url);
 });
 
-function getOwnerIdFromTopic(topic) {
-  return topic?.match(/owner=(\d+)/)?.[1] || null;
+function parseTopic(topic = "") {
+  const data = {};
+  topic.split(";").forEach(part => {
+    const [key, value] = part.split("=");
+    if (key && value) data[key] = value;
+  });
+  return data;
+}
+
+function replaceVars(text, interaction, channel) {
+  return String(text || "")
+    .replaceAll("{user}", `${interaction.user}`)
+    .replaceAll("{user.id}", interaction.user.id)
+    .replaceAll("{user.username}", interaction.user.username)
+    .replaceAll("{server.name}", interaction.guild.name)
+    .replaceAll("{channel.name}", channel.name);
+}
+
+async function sendLog(guild, config, embed, files = []) {
+  if (!config?.ticketLogsChannelId) return;
+
+  const logChannel = guild.channels.cache.get(config.ticketLogsChannelId);
+  if (!logChannel) return;
+
+  await logChannel.send({
+    embeds: [embed],
+    files
+  }).catch(() => {});
 }
 
 client.on("interactionCreate", async interaction => {
@@ -282,18 +314,26 @@ client.on("interactionCreate", async interaction => {
         permissionOverwrites: overwrites
       });
 
-      const welcomeMessage = (config.ticketWelcomeMessage ||
-        "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.")
-        .replaceAll("{user}", `${interaction.user}`)
-        .replaceAll("{user.id}", interaction.user.id)
-        .replaceAll("{user.username}", interaction.user.username)
-        .replaceAll("{server.name}", interaction.guild.name)
-        .replaceAll("{channel.name}", ticketChannel.name);
+      const welcomeRaw =
+        config.ticketWelcomeMessage ||
+        "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
+
+      const welcomeMessage = replaceVars(welcomeRaw, interaction, ticketChannel);
 
       const ticketEmbed = new EmbedBuilder()
-        .setTitle(`Ticket de ${interaction.user.username}`)
+        .setAuthor({
+          name: interaction.user.username,
+          iconURL: interaction.user.displayAvatarURL()
+        })
+        .setTitle("🎫 Ticket abierto")
         .setDescription(welcomeMessage)
         .setColor(config.ticketEmbedColor || "#23a559")
+        .addFields(
+          { name: "👤 Usuario", value: `${interaction.user}`, inline: true },
+          { name: "🆔 ID", value: `\`${interaction.user.id}\``, inline: true },
+          { name: "📌 Estado", value: "Abierto", inline: true }
+        )
+        .setFooter({ text: "Sistema de Tickets" })
         .setTimestamp();
 
       const ticketButtons = new ActionRowBuilder().addComponents(
@@ -305,7 +345,7 @@ client.on("interactionCreate", async interaction => {
 
         new ButtonBuilder()
           .setCustomId("close_ticket")
-          .setLabel("Cerrar")
+          .setLabel("Cerrar Ticket")
           .setEmoji("🔒")
           .setStyle(ButtonStyle.Danger)
       );
@@ -315,6 +355,18 @@ client.on("interactionCreate", async interaction => {
         embeds: [ticketEmbed],
         components: [ticketButtons]
       });
+
+      const logEmbed = new EmbedBuilder()
+        .setTitle("🎫 Ticket creado")
+        .setColor(config.ticketEmbedColor || "#23a559")
+        .setDescription(
+          `🎫 **Canal:** ${ticketChannel}\n` +
+          `👤 **Usuario:** ${interaction.user}\n` +
+          `🆔 **ID:** \`${interaction.user.id}\``
+        )
+        .setTimestamp();
+
+      await sendLog(interaction.guild, config, logEmbed);
 
       return interaction.reply({
         content: `✅ Ticket creado: ${ticketChannel}`,
@@ -334,10 +386,18 @@ client.on("interactionCreate", async interaction => {
       }
 
       const topic = interaction.channel.topic || "";
+      const data = parseTopic(topic);
 
-      if (topic.includes("claimed=") && !topic.includes("claimed=none")) {
+      if (!data.owner) {
         return interaction.reply({
-          content: "❌ Este ticket ya fue reclamado.",
+          content: "❌ Este canal no parece ser un ticket.",
+          ephemeral: true
+        });
+      }
+
+      if (data.claimed && data.claimed !== "none") {
+        return interaction.reply({
+          content: `❌ Este ticket ya fue reclamado por <@${data.claimed}>.`,
           ephemeral: true
         });
       }
@@ -346,12 +406,39 @@ client.on("interactionCreate", async interaction => {
         topic.replace("claimed=none", `claimed=${interaction.user.id}`)
       );
 
-      return interaction.reply({
-        content: `🙋 Ticket reclamado por ${interaction.user}.`
-      });
+      const embed = new EmbedBuilder()
+        .setTitle("🙋 Ticket reclamado")
+        .setColor(config.ticketEmbedColor || "#23a559")
+        .setDescription(`Este ticket fue reclamado por ${interaction.user}.`)
+        .setTimestamp();
+
+      await interaction.reply({ embeds: [embed] });
+
+      const logEmbed = new EmbedBuilder()
+        .setTitle("🙋 Ticket reclamado")
+        .setColor(config.ticketEmbedColor || "#23a559")
+        .setDescription(
+          `🎫 **Canal:** ${interaction.channel}\n` +
+          `👮 **Staff:** ${interaction.user}\n` +
+          `👤 **Usuario:** <@${data.owner}>`
+        )
+        .setTimestamp();
+
+      await sendLog(interaction.guild, config, logEmbed);
+      return;
     }
 
     if (interaction.isButton() && interaction.customId === "close_ticket") {
+      const config = await GuildConfig.findOne({ guildId: interaction.guild.id });
+      const staffId = config?.supportRoleId || config?.staffRoleId;
+
+      if (staffId && !interaction.member.roles.cache.has(staffId)) {
+        return interaction.reply({
+          content: "❌ Solo soporte puede cerrar tickets.",
+          ephemeral: true
+        });
+      }
+
       const modal = new ModalBuilder()
         .setCustomId("close_ticket_modal")
         .setTitle("Cerrar ticket");
@@ -364,14 +451,20 @@ client.on("interactionCreate", async interaction => {
         .setPlaceholder("Ejemplo: problema resuelto, compra finalizada...");
 
       modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
-
       return interaction.showModal(modal);
     }
 
     if (interaction.isModalSubmit() && interaction.customId === "close_ticket_modal") {
+      const config = await GuildConfig.findOne({ guildId: interaction.guild.id });
       const reason = interaction.fields.getTextInputValue("close_reason");
-      const ownerId = getOwnerIdFromTopic(interaction.channel.topic);
-      const user = ownerId ? await client.users.fetch(ownerId).catch(() => null) : null;
+      const data = parseTopic(interaction.channel.topic || "");
+
+      if (!data.owner) {
+        return interaction.reply({
+          content: "❌ Este canal no parece ser un ticket.",
+          ephemeral: true
+        });
+      }
 
       await interaction.reply({
         content: "🔒 Cerrando ticket y generando transcript...",
@@ -384,34 +477,61 @@ client.on("interactionCreate", async interaction => {
         filename: `transcript-${interaction.channel.name}.html`
       });
 
+      const user = await client.users.fetch(data.owner).catch(() => null);
+
       const ratingRow = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId("rating_excellent")
           .setLabel("Excelente")
+          .setEmoji("⭐")
           .setStyle(ButtonStyle.Success),
 
         new ButtonBuilder()
           .setCustomId("rating_good")
           .setLabel("Bueno")
+          .setEmoji("👍")
           .setStyle(ButtonStyle.Primary),
 
         new ButtonBuilder()
           .setCustomId("rating_bad")
           .setLabel("Mala")
+          .setEmoji("👎")
           .setStyle(ButtonStyle.Danger)
       );
 
+      const dmEmbed = new EmbedBuilder()
+        .setTitle("📩 Tu ticket fue cerrado")
+        .setColor(config?.ticketEmbedColor || "#23a559")
+        .setDescription(
+          `Hola <@${data.owner}>.\n\n` +
+          `Tu ticket **${interaction.channel.name}** fue cerrado.\n\n` +
+          `👮 **Cerrado por:** ${interaction.user}\n` +
+          `📝 **Razón:** ${reason}\n\n` +
+          `Adjuntamos el transcript completo. Abajo podés calificar la atención.`
+        )
+        .setTimestamp();
+
       if (user) {
         await user.send({
-          content:
-            `📩 Tu ticket **${interaction.channel.name}** fue cerrado.\n\n` +
-            `📝 **Razón:** ${reason}\n` +
-            `👤 **Cerrado por:** ${interaction.user}\n\n` +
-            `Adjuntamos el transcript del ticket. Abajo podés calificar la atención.`,
+          embeds: [dmEmbed],
           files: [transcript],
           components: [ratingRow]
         }).catch(() => {});
       }
+
+      const logEmbed = new EmbedBuilder()
+        .setTitle("🔒 Ticket cerrado")
+        .setColor(config?.ticketEmbedColor || "#23a559")
+        .setDescription(
+          `🎫 **Canal:** ${interaction.channel.name}\n` +
+          `👤 **Usuario:** <@${data.owner}>\n` +
+          `👮 **Cerrado por:** ${interaction.user}\n` +
+          `🙋 **Reclamado por:** ${data.claimed && data.claimed !== "none" ? `<@${data.claimed}>` : "No reclamado"}\n\n` +
+          `📝 **Razón:**\n${reason}`
+        )
+        .setTimestamp();
+
+      await sendLog(interaction.guild, config, logEmbed, [transcript]);
 
       setTimeout(() => {
         interaction.channel.delete().catch(() => {});
@@ -425,11 +545,26 @@ client.on("interactionCreate", async interaction => {
       ["rating_excellent", "rating_good", "rating_bad"].includes(interaction.customId)
     ) {
       let rating = "Mala";
-      if (interaction.customId === "rating_excellent") rating = "Excelente";
-      if (interaction.customId === "rating_good") rating = "Bueno";
+      let color = "#ed4245";
+
+      if (interaction.customId === "rating_excellent") {
+        rating = "Excelente";
+        color = "#23a559";
+      }
+
+      if (interaction.customId === "rating_good") {
+        rating = "Bueno";
+        color = "#5865f2";
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle("⭐ Gracias por tu calificación")
+        .setColor(color)
+        .setDescription(`Calificaste la atención como **${rating}**.`)
+        .setTimestamp();
 
       return interaction.reply({
-        content: `✅ Gracias por calificar la atención como **${rating}**.`,
+        embeds: [embed],
         ephemeral: true
       });
     }
