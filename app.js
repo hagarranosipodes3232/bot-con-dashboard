@@ -198,42 +198,66 @@ console.log(req.body);
   res.redirect(`/dashboard/${req.params.guildId}`);
 });
 
-app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
-console.log(req.body);
-  const guildId = req.params.guildId;
-  const guild = client.guilds.cache.get(guildId);
-  const config = await saveTicketConfig(guildId, req.body, true);
-  if (!guild) return res.send("❌ El bot no está en este servidor.");
-
-  const channel = guild.channels.cache.get(req.body.ticketPanelChannelId);
-  if (!channel) return res.send("❌ Seleccioná un canal del panel primero.");
-
-  const embed = new EmbedBuilder()
-    .setAuthor({ name: guild.name, iconURL: guild.iconURL() || undefined })
-    .setTitle(req.body.ticketPanelName || config.ticketPanelName || "Panel de Tickets")
-    .setDescription(req.body.ticketPanelMessage || config.ticketPanelMessage)
-    .setColor(req.body.ticketEmbedColor || config.ticketEmbedColor || "#23a559")
-    .setFooter({ text: "Sistema de Tickets" })
-    .setTimestamp();
-
-   const styleMap = {
-    Primary: ButtonStyle.Primary,
-    Secondary: ButtonStyle.Secondary,
-    Success: ButtonStyle.Success,
-    Danger: ButtonStyle.Danger
-  };
-const row = new ActionRowBuilder();
-
-(config.ticketButtons || []).slice(0, 5).forEach((btn, index) => {
-  row.addComponents(
-    new ButtonBuilder()
-      .setCustomId(`open_ticket_${index}`)
-      .setLabel(btn.label || `Ticket ${index + 1}`)
-      .setEmoji(btn.emoji || "🎫")
-      .setStyle(styleMap[btn.style] || ButtonStyle.Success)
-  );
-});
 return res.redirect(`/dashboard/${guildId}/tickets`);
+app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
+  try {
+    const guildId = req.params.guildId;
+    const guild = client.guilds.cache.get(guildId);
+    if (!guild) return res.send("❌ El bot no está en este servidor.");
+
+    const config = await saveTicketConfig(guildId, req.body, true);
+
+    const channel = guild.channels.cache.get(config.ticketPanelChannelId);
+    if (!channel) return res.send("❌ Seleccioná un canal del panel primero.");
+
+    const embed = new EmbedBuilder()
+      .setAuthor({ name: guild.name, iconURL: guild.iconURL() || undefined })
+      .setTitle(config.ticketPanelName || "Panel de Tickets")
+      .setDescription(config.ticketPanelMessage || "Abrí un ticket con los botones.")
+      .setColor(config.ticketEmbedColor || "#23a559")
+      .setFooter({ text: "Sistema de Tickets" })
+      .setTimestamp();
+
+    const styleMap = {
+      Primary: ButtonStyle.Primary,
+      Secondary: ButtonStyle.Secondary,
+      Success: ButtonStyle.Success,
+      Danger: ButtonStyle.Danger
+    };
+
+    const buttons = config.ticketButtons?.length
+      ? config.ticketButtons.slice(0, 5)
+      : [
+          { label: "Consultas", emoji: "❓", style: "Primary" },
+          { label: "Soporte", emoji: "🛠️", style: "Success" },
+          { label: "Compras", emoji: "🛒", style: "Secondary" },
+          { label: "Reportes", emoji: "🚨", style: "Danger" },
+          { label: "Otros", emoji: "📩", style: "Primary" }
+        ];
+
+    const row = new ActionRowBuilder();
+
+    buttons.forEach((btn, index) => {
+      row.addComponents(
+        new ButtonBuilder()
+          .setCustomId(`open_ticket_${index}`)
+          .setLabel(btn.label || `Ticket ${index + 1}`)
+          .setEmoji(btn.emoji || "🎫")
+          .setStyle(styleMap[btn.style] || ButtonStyle.Success)
+      );
+    });
+
+    await channel.send({
+      embeds: [embed],
+      components: [row]
+    });
+
+    return res.redirect(`/dashboard/${guildId}/tickets`);
+  } catch (error) {
+    console.log("❌ Error enviando panel:", error);
+    return res.send("❌ Error enviando panel. Mirá los logs de Render.");
+  }
+});
 });
 app.get("/invite", (req, res) => {
   const url =
