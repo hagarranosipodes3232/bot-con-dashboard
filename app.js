@@ -611,13 +611,6 @@ app.get("/invite", (req, res) => {
 
   res.redirect(url);
 });
-  const url =
-    "https://discord.com/oauth2/authorize" +
-    `?client_id=${process.env.CLIENT_ID}` +
-    "&permissions=8" +
-    "&scope=bot%20applications.commands";
-
-  res.redirect(url);
 
 function parseTopic(topic = "") {
   const data = {};
