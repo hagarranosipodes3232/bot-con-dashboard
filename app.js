@@ -228,8 +228,15 @@ console.log(config.ticketButtons);
     Danger: ButtonStyle.Danger
   };
 let enabledButtons = (realConfig.ticketButtons || []).filter(btn => btn.enabled);
- if (enabledButtons.length === 0) {
-  return res.send("❌ Tenés que agregar al menos un botón antes de enviar el panel.");
+
+if (enabledButtons.length === 0) {
+    enabledButtons = [{
+        enabled: true,
+        label: "Abrir Ticket",
+        emoji: "🎫",
+        style: "Success",
+        welcomeMessage: ""
+    }];
 }
   const rows = [];
 
