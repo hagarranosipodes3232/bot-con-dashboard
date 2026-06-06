@@ -432,10 +432,9 @@ client.on("interactionCreate", async interaction => {
 console.log("BOTON SELECCIONADO:", selectedButton);
 console.log("MENSAJE DEL BOTON:", selectedButton?.welcomeMessage);
 
-      const welcomeRaw =
-        selectedButton?.welcomeMessage ||
-        config.ticketWelcomeMessage ||
-        "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
+     const welcomeRaw =
+  selectedButton?.welcomeMessage ||
+  "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
 
       const welcomeMessage = replaceVars(
         welcomeRaw,
