@@ -207,12 +207,6 @@ console.log(req.body);
   const channel = guild.channels.cache.get(req.body.ticketPanelChannelId);
   if (!channel) return res.send("❌ Seleccioná un canal del panel primero.");
 
-  const config = await saveTicketConfig(guildId, req.body, true);
-const realConfig = await GuildConfig.findOne({ guildId });
-console.log("BOTONES REALES:", realConfig.ticketButtons);
-console.log("BOTONES GUARDADOS:");
-console.log(config.ticketButtons);
-
   const embed = new EmbedBuilder()
     .setAuthor({ name: guild.name, iconURL: guild.iconURL() || undefined })
     .setTitle(req.body.ticketPanelName || config.ticketPanelName || "Panel de Tickets")
