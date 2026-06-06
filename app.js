@@ -113,6 +113,7 @@ app.get("/servers", async (req, res) => {
 app.get("/dashboard/:guildId/tickets", async (req, res) => {
   res.redirect(`/dashboard/${req.params.guildId}`);
 });
+
 app.get("/dashboard/:guildId", async (req, res) => {
   if (!req.session.access_token) return res.redirect("/login");
 
@@ -144,25 +145,28 @@ app.get("/dashboard/:guildId", async (req, res) => {
     roles
   });
 });
+
 async function saveTicketConfig(guildId, body, forceEnabled = false) {
   const ticketButtons = [];
-for (let i = 1; i <= 20; i++) {
-  const label = body[`buttonLabel_${i}`];
-  const emoji = body[`buttonEmoji_${i}`];
-  const style = body[`buttonStyle_${i}`];
-  const welcomeMessage = body[`buttonWelcome_${i}`];
 
-  if (label || emoji || style || welcomeMessage) {
-    ticketButtons.push({
-      enabled: true,
-      label: label || `Ticket ${i}`,
-      emoji: emoji || "🎫",
-      style: style || "Success",
-      welcomeMessage: welcomeMessage || ""
-    });
+  for (let i = 1; i <= 20; i++) {
+    const label = body[`buttonLabel_${i}`];
+    const emoji = body[`buttonEmoji_${i}`];
+    const style = body[`buttonStyle_${i}`];
+    const welcomeMessage = body[`buttonWelcome_${i}`];
+
+    if (label || emoji || style || welcomeMessage) {
+      ticketButtons.push({
+        enabled: true,
+        label: label || `Ticket ${i}`,
+        emoji: emoji || "🎫",
+        style: style || "Success",
+        welcomeMessage: welcomeMessage || ""
+      });
+    }
   }
-}
-    return GuildConfig.findOneAndUpdate(
+
+  return GuildConfig.findOneAndUpdate(
     { guildId },
     {
       ticketsEnabled: forceEnabled ? true : body.ticketsEnabled === "on",
@@ -183,35 +187,41 @@ for (let i = 1; i <= 20; i++) {
           ? body.ticketPanelMessage
           : "Usá el botón de abajo para abrir un ticket.",
       ticketEmbedColor: body.ticketEmbedColor || "#23a559",
-ticketButtonLabel: body.ticketButtonLabel || "Abrir Ticket",
-ticketButtonEmoji: body.ticketButtonEmoji || "🎫",
-ticketButtonStyle: body.ticketButtonStyle || "Success",
-ticketButtons
+      ticketButtonLabel: body.ticketButtonLabel || "Abrir Ticket",
+      ticketButtonEmoji: body.ticketButtonEmoji || "🎫",
+      ticketButtonStyle: body.ticketButtonStyle || "Success",
+      ticketButtons
     },
-   { upsert: true, new: true, returnDocument: "after" }
+    { upsert: true, new: true, returnDocument: "after" }
   );
 }
 
 app.post("/dashboard/:guildId/tickets", async (req, res) => {
-console.log(req.body);
   await saveTicketConfig(req.params.guildId, req.body, false);
   res.redirect(`/dashboard/${req.params.guildId}`);
 });
-
-return res.redirect(`/dashboard/${guildId}/tickets`);
 app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
   try {
     const guildId = req.params.guildId;
     const guild = client.guilds.cache.get(guildId);
-    if (!guild) return res.send("❌ El bot no está en este servidor.");
+
+    if (!guild) {
+      return res.send("❌ El bot no está en este servidor.");
+    }
 
     const config = await saveTicketConfig(guildId, req.body, true);
 
     const channel = guild.channels.cache.get(config.ticketPanelChannelId);
-    if (!channel) return res.send("❌ Seleccioná un canal del panel primero.");
+
+    if (!channel) {
+      return res.send("❌ Seleccioná un canal del panel primero.");
+    }
 
     const embed = new EmbedBuilder()
-      .setAuthor({ name: guild.name, iconURL: guild.iconURL() || undefined })
+      .setAuthor({
+        name: guild.name,
+        iconURL: guild.iconURL() || undefined
+      })
       .setTitle(config.ticketPanelName || "Panel de Tickets")
       .setDescription(config.ticketPanelMessage || "Abrí un ticket con los botones.")
       .setColor(config.ticketEmbedColor || "#23a559")
@@ -225,15 +235,19 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
       Danger: ButtonStyle.Danger
     };
 
-    const buttons = config.ticketButtons?.length
-      ? config.ticketButtons.slice(0, 5)
-      : [
-          { label: "Consultas", emoji: "❓", style: "Primary" },
-          { label: "Soporte", emoji: "🛠️", style: "Success" },
-          { label: "Compras", emoji: "🛒", style: "Secondary" },
-          { label: "Reportes", emoji: "🚨", style: "Danger" },
-          { label: "Otros", emoji: "📩", style: "Primary" }
-        ];
+    let buttons = config.ticketButtons || [];
+
+    if (!buttons.length) {
+      buttons = [
+        { label: "Consultas", emoji: "❓", style: "Primary" },
+        { label: "Soporte", emoji: "🛠️", style: "Success" },
+        { label: "Compras", emoji: "🛒", style: "Secondary" },
+        { label: "Reportes", emoji: "🚨", style: "Danger" },
+        { label: "Otros", emoji: "📩", style: "Primary" }
+      ];
+    }
+
+    buttons = buttons.slice(0, 5);
 
     const row = new ActionRowBuilder();
 
@@ -258,7 +272,7 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
     return res.send("❌ Error enviando panel. Mirá los logs de Render.");
   }
 });
-});
+
 app.get("/invite", (req, res) => {
   const url =
     "https://discord.com/oauth2/authorize" +
@@ -271,10 +285,12 @@ app.get("/invite", (req, res) => {
 
 function parseTopic(topic = "") {
   const data = {};
+
   topic.split(";").forEach(part => {
     const [key, value] = part.split("=");
     if (key && value) data[key] = value;
   });
+
   return data;
 }
 
@@ -298,26 +314,38 @@ async function sendLog(guild, config, embed, files = []) {
     files
   }).catch(() => {});
 }
-
 client.on("interactionCreate", async interaction => {
   try {
-  if (
-  interaction.isButton() &&
-  interaction.customId.startsWith("open_ticket_")
-) {
-      const config = await GuildConfig.findOne({ guildId: interaction.guild.id });
-const buttonIndex = Number(interaction.customId.replace("open_ticket_", ""));
+    if (
+      interaction.isButton() &&
+      interaction.customId.startsWith("open_ticket_")
+    ) {
+      const config = await GuildConfig.findOne({
+        guildId: interaction.guild.id
+      });
 
-const enabledButtons = (config.ticketButtons || []).filter(btn => btn.enabled);
-
-const selectedButton = enabledButtons[buttonIndex];
-
-     if (!config) {
+      if (!config) {
         return interaction.reply({
           content: "❌ El sistema de tickets no está configurado.",
           ephemeral: true
         });
       }
+
+      const buttonIndex = Number(
+        interaction.customId.replace("open_ticket_", "")
+      );
+
+      const enabledButtons = config.ticketButtons?.length
+        ? config.ticketButtons.filter(btn => btn.enabled)
+        : [
+            { label: "Consultas", emoji: "❓", style: "Primary", welcomeMessage: "" },
+            { label: "Soporte", emoji: "🛠️", style: "Success", welcomeMessage: "" },
+            { label: "Compras", emoji: "🛒", style: "Secondary", welcomeMessage: "" },
+            { label: "Reportes", emoji: "🚨", style: "Danger", welcomeMessage: "" },
+            { label: "Otros", emoji: "📩", style: "Primary", welcomeMessage: "" }
+          ];
+
+      const selectedButton = enabledButtons[buttonIndex];
 
       const existing = interaction.guild.channels.cache.find(ch =>
         ch.topic &&
@@ -376,19 +404,23 @@ const selectedButton = enabledButtons[buttonIndex];
         permissionOverwrites: overwrites
       });
 
-    const welcomeRaw =
-  selectedButton?.welcomeMessage ||
-  config.ticketWelcomeMessage ||
-  "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
+      const welcomeRaw =
+        selectedButton?.welcomeMessage ||
+        config.ticketWelcomeMessage ||
+        "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
 
-      const welcomeMessage = replaceVars(welcomeRaw, interaction, ticketChannel);
+      const welcomeMessage = replaceVars(
+        welcomeRaw,
+        interaction,
+        ticketChannel
+      );
 
       const ticketEmbed = new EmbedBuilder()
         .setAuthor({
           name: interaction.user.username,
           iconURL: interaction.user.displayAvatarURL()
         })
-        .setTitle("🎫 Ticket abierto")
+        .setTitle(`🎫 Ticket abierto - ${selectedButton?.label || "Ticket"}`)
         .setDescription(welcomeMessage)
         .setColor(config.ticketEmbedColor || "#23a559")
         .addFields(
@@ -438,7 +470,10 @@ const selectedButton = enabledButtons[buttonIndex];
     }
 
     if (interaction.isButton() && interaction.customId === "claim_ticket") {
-      const config = await GuildConfig.findOne({ guildId: interaction.guild.id });
+      const config = await GuildConfig.findOne({
+        guildId: interaction.guild.id
+      });
+
       const staffId = config?.supportRoleId || config?.staffRoleId;
 
       if (!staffId || !interaction.member.roles.cache.has(staffId)) {
@@ -473,32 +508,21 @@ const selectedButton = enabledButtons[buttonIndex];
         .setTitle("🙋 Ticket reclamado")
         .setColor(config.ticketEmbedColor || "#23a559")
         .setDescription(
-`👮 Staff asignado: ${interaction.user}
-
-Este ticket ahora está siendo atendido.
-
-Por favor espere una respuesta.`
-)
-        .setTimestamp();
-
-      await interaction.reply({ embeds: [embed] });
-
-      const logEmbed = new EmbedBuilder()
-        .setTitle("🙋 Ticket reclamado")
-        .setColor(config.ticketEmbedColor || "#23a559")
-        .setDescription(
-          `🎫 **Canal:** ${interaction.channel}\n` +
-          `👮 **Staff:** ${interaction.user}\n` +
-          `👤 **Usuario:** <@${data.owner}>`
+          `👮 Staff asignado: ${interaction.user}\n\n` +
+          `Este ticket ahora está siendo atendido.\n\n` +
+          `Por favor espere una respuesta.`
         )
         .setTimestamp();
 
-      await sendLog(interaction.guild, config, logEmbed);
+      await interaction.reply({ embeds: [embed] });
       return;
     }
 
     if (interaction.isButton() && interaction.customId === "close_ticket") {
-      const config = await GuildConfig.findOne({ guildId: interaction.guild.id });
+      const config = await GuildConfig.findOne({
+        guildId: interaction.guild.id
+      });
+
       const staffId = config?.supportRoleId || config?.staffRoleId;
 
       if (staffId && !interaction.member.roles.cache.has(staffId)) {
@@ -520,11 +544,18 @@ Por favor espere una respuesta.`
         .setPlaceholder("Ejemplo: problema resuelto, compra finalizada...");
 
       modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+
       return interaction.showModal(modal);
     }
 
-    if (interaction.isModalSubmit() && interaction.customId === "close_ticket_modal") {
-      const config = await GuildConfig.findOne({ guildId: interaction.guild.id });
+    if (
+      interaction.isModalSubmit() &&
+      interaction.customId === "close_ticket_modal"
+    ) {
+      const config = await GuildConfig.findOne({
+        guildId: interaction.guild.id
+      });
+
       const reason = interaction.fields.getTextInputValue("close_reason");
       const data = parseTopic(interaction.channel.topic || "");
 
@@ -540,11 +571,14 @@ Por favor espere una respuesta.`
         ephemeral: true
       });
 
-      const transcript = await discordTranscripts.createTranscript(interaction.channel, {
-        limit: -1,
-        returnType: "attachment",
-        filename: `transcript-${interaction.channel.name}.html`
-      });
+      const transcript = await discordTranscripts.createTranscript(
+        interaction.channel,
+        {
+          limit: -1,
+          returnType: "attachment",
+          filename: `transcript-${interaction.channel.name}.html`
+        }
+      );
 
       const user = await client.users.fetch(data.owner).catch(() => null);
 
@@ -572,7 +606,6 @@ Por favor espere una respuesta.`
         .setTitle("📩 Tu ticket fue cerrado")
         .setColor(config?.ticketEmbedColor || "#23a559")
         .setDescription(
-          `Hola <@${data.owner}>.\n\n` +
           `Tu ticket **${interaction.channel.name}** fue cerrado.\n\n` +
           `👮 **Cerrado por:** ${interaction.user}\n` +
           `📝 **Razón:** ${reason}\n\n` +
@@ -595,7 +628,6 @@ Por favor espere una respuesta.`
           `🎫 **Canal:** ${interaction.channel.name}\n` +
           `👤 **Usuario:** <@${data.owner}>\n` +
           `👮 **Cerrado por:** ${interaction.user}\n` +
-          `🙋 **Reclamado por:** ${data.claimed && data.claimed !== "none" ? `<@${data.claimed}>` : "No reclamado"}\n\n` +
           `📝 **Razón:**\n${reason}`
         )
         .setTimestamp();
@@ -611,7 +643,9 @@ Por favor espere una respuesta.`
 
     if (
       interaction.isButton() &&
-      ["rating_excellent", "rating_good", "rating_bad"].includes(interaction.customId)
+      ["rating_excellent", "rating_good", "rating_bad"].includes(
+        interaction.customId
+      )
     ) {
       let rating = "Mala";
       let color = "#ed4245";
