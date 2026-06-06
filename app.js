@@ -235,35 +235,59 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
       Danger: ButtonStyle.Danger
     };
 
-    let buttons = config.ticketButtons || [];
+    const savedButtons = [];
 
-    if (!buttons.length) {
-      buttons = [
-        { label: "Consultas", emoji: "❓", style: "Primary" },
-        { label: "Soporte", emoji: "🛠️", style: "Success" },
-        { label: "Compras", emoji: "🛒", style: "Secondary" },
-        { label: "Reportes", emoji: "🚨", style: "Danger" },
-        { label: "Otros", emoji: "📩", style: "Primary" }
-      ];
+    for (let i = 1; i <= 10; i++) {
+      const label = req.body[`buttonLabel_${i}`];
+      const emoji = req.body[`buttonEmoji_${i}`];
+      const style = req.body[`buttonStyle_${i}`];
+      const welcomeMessage = req.body[`buttonWelcome_${i}`];
+
+      if (label || emoji || style || welcomeMessage) {
+        savedButtons.push({
+          label: label || `Ticket ${i}`,
+          emoji: emoji || "🎫",
+          style: style || "Success",
+          welcomeMessage: welcomeMessage || ""
+        });
+      }
     }
 
-    buttons = buttons.slice(0, 5);
+    const buttons = savedButtons.length
+      ? savedButtons.slice(0, 10)
+      : [
+          { label: "Abrir Ticket", emoji: "🎫", style: "Success", welcomeMessage: "" }
+        ];
 
-    const row = new ActionRowBuilder();
+    const rows = [];
 
-    buttons.forEach((btn, index) => {
-      row.addComponents(
-        new ButtonBuilder()
-          .setCustomId(`open_ticket_${index}`)
-          .setLabel(btn.label || `Ticket ${index + 1}`)
-          .setEmoji(btn.emoji || "🎫")
-          .setStyle(styleMap[btn.style] || ButtonStyle.Success)
-      );
-    });
+    for (let i = 0; i < buttons.length; i += 5) {
+      const row = new ActionRowBuilder();
+
+      buttons.slice(i, i + 5).forEach((btn, index) => {
+        const realIndex = i + index;
+
+        row.addComponents(
+          new ButtonBuilder()
+            .setCustomId(`open_ticket_${realIndex}`)
+            .setLabel(btn.label || `Ticket ${realIndex + 1}`)
+            .setEmoji(btn.emoji || "🎫")
+            .setStyle(styleMap[btn.style] || ButtonStyle.Success)
+        );
+      });
+
+      rows.push(row);
+    }
+
+    await GuildConfig.findOneAndUpdate(
+      { guildId },
+      { ticketButtons: buttons },
+      { new: true }
+    );
 
     await channel.send({
       embeds: [embed],
-      components: [row]
+      components: rows
     });
 
     return res.redirect(`/dashboard/${guildId}/tickets`);
@@ -272,8 +296,7 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
     return res.send("❌ Error enviando panel. Mirá los logs de Render.");
   }
 });
-
-app.get("/invite", (req, res) => {
+   app.get("/invite", (req, res) => {
   const url =
     "https://discord.com/oauth2/authorize" +
     `?client_id=${process.env.CLIENT_ID}` +
