@@ -244,13 +244,15 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
       const welcomeMessage = req.body[`buttonWelcome_${i}`];
 
       if (label || emoji || style || welcomeMessage) {
-        savedButtons.push({
-          label: label || `Ticket ${i}`,
-          emoji: emoji || "🎫",
-          style: style || "Success",
-          welcomeMessage: welcomeMessage || ""
-        });
-      }
+
+savedButtons.push({
+  enabled: true,
+  label: label || `Ticket ${i}`,
+  emoji: emoji || "🎫",
+  style: style || "Success",
+  welcomeMessage: welcomeMessage || ""
+});
+             }
     }
 
     const buttons = savedButtons.length
