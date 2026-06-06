@@ -129,15 +129,7 @@
             <label>Límite de tickets por usuario</label>
             <input class="input" type="number" min="1" name="ticketLimit" value="<%= config.ticketLimit || 1 %>">
           </div>
-
-          <div class="card">
-            <h2>👋 Mensaje de Bienvenida</h2>
-            <label>Mensaje cuando se abre un ticket</label>
-            <textarea class="textarea big" name="ticketWelcomeMessage" id="welcomeMessage" placeholder="Mensaje que verá el usuario dentro del ticket..."><%= config.ticketWelcomeMessage || '' %></textarea>
-            <small>Variables: {user}, {user.id}, {user.username}, {server.name}, {channel.name}</small>
-          </div>
-
-          <div class="card">
+           <div class="card">
             <h2>📜 Registros</h2>
             <label>Canal de registros</label>
             <select class="input" name="ticketLogsChannelId">
@@ -194,7 +186,6 @@
 <script>
 const panelName = document.getElementById("panelName");
 const panelMessage = document.getElementById("panelMessage");
-const welcomeMessage = document.getElementById("welcomeMessage");
 const previewTitle = document.getElementById("previewTitle");
 const previewText = document.getElementById("previewText");
 const welcomePreview = document.getElementById("welcomePreview");
@@ -215,7 +206,6 @@ function getButtonColor(style) {
 function updatePreview() {
   previewTitle.innerText = panelName.value || "Sistema de Tickets";
   previewText.innerText = panelMessage.value || "Abrí un ticket con los botones.";
-  welcomePreview.innerText = welcomeMessage.value || "Hola {user}, un miembro del staff te atenderá pronto.";
 
   const selectedColor = document.querySelector("input[name='ticketEmbedColor']:checked");
   if (selectedColor) {
@@ -305,7 +295,6 @@ buttonsContainer.addEventListener("click", e => {
 
 panelName.addEventListener("input", updatePreview);
 panelMessage.addEventListener("input", updatePreview);
-if (welcomeMessage) welcomeMessage.addEventListener("input", updatePreview);
 document.querySelectorAll("input[name='ticketEmbedColor']").forEach(input => input.addEventListener("change", updatePreview));
 
 refreshButtonNumbers();
