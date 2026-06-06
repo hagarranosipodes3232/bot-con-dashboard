@@ -708,7 +708,7 @@ client.on("interactionCreate", async interaction => {
 });
 
 client.once("clientReady", () => {
-  console.log(`🤖 Bot conectado como ${client.user.tag}`);
+  console.log(`🤖 Bot conected como ${client.user.tag}`);
 });
 
 client.login(process.env.TOKEN);
