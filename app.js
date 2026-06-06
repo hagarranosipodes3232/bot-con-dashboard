@@ -252,23 +252,7 @@ const row = new ActionRowBuilder().addComponents(
     .setEmoji("📩")
     .setStyle(ButtonStyle.Primary)
 );
-    const row = new ActionRowBuilder();
-
-    enabledButtons.slice(i, i + 5).forEach((btn, index) => {
-      const realIndex = i + index;
-
-      row.addComponents(
-        new ButtonBuilder()
-          .setCustomId(`open_ticket_${realIndex}`)
-          .setLabel(btn.label || "Abrir Ticket")
-          .setEmoji(btn.emoji || "🎫")
-          .setStyle(styleMap[btn.style] || ButtonStyle.Success)
-      );
-    });
-
-    rows.push(row);
-  }
-await channel.send({
+   await channel.send({
   embeds: [embed],
  components: [row]
 });
