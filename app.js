@@ -444,8 +444,7 @@ client.on("interactionCreate", async interaction => {
       const welcomeRaw =
         selectedButton?.welcomeMessage && selectedButton.welcomeMessage.trim() !== ""
           ? selectedButton.welcomeMessage
-          : "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
-
+         
       const welcomeMessage = replaceVars(
         welcomeRaw,
         interaction,
