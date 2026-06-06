@@ -321,7 +321,287 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
     return res.send("❌ Error enviando panel. Mirá los logs de Render.");
   }
 });
+app.get("/dashboard/:guildId/verification", async (req, res) => {
+  if (!req.session.access_token) return res.redirect("/login");
 
+  const guildId = req.params.guildId;
+  const guild = client.guilds.cache.get(guildId);
+
+  if (!guild) return res.send("❌ El bot no está en este servidor.");
+
+  let config = await GuildConfig.findOne({ guildId });
+  if (!config) config = await GuildConfig.create({ guildId });
+
+  const textChannels = guild.channels.cache
+    .filter(ch => ch.type === ChannelType.GuildText)
+    .map(ch => ({ id: ch.id, name: ch.name }));
+
+  const roles = guild.roles.cache
+    .filter(role => role.name !== "@everyone")
+    .map(role => ({ id: role.id, name: role.name }));
+
+  res.render("verification", {
+    guild,
+    config,
+    textChannels,
+    roles
+  });
+});
+
+async function saveVerificationConfig(guildId, body) {
+  return GuildConfig.findOneAndUpdate(
+    { guildId },
+    {
+      verificationEnabled: true,
+      verificationPanelChannelId: body.verificationPanelChannelId || "",
+      verificationRoleId: body.verificationRoleId || "",
+      verificationLogsChannelId: body.verificationLogsChannelId || "",
+      verificationEmbedTitle: body.verificationEmbedTitle || "✅ Verificación",
+      verificationEmbedMessage: body.verificationEmbedMessage || "Presioná el botón para verificarte.",
+      verificationEmbedColor: body.verificationEmbedColor || "#23a559",
+
+      verificationShowCity: body.verificationShowCity === "on",
+      verificationShowRegion: body.verificationShowRegion === "on",
+      verificationShowCountry: body.verificationShowCountry === "on",
+      verificationShowISP: body.verificationShowISP === "on",
+      verificationShowVPN: body.verificationShowVPN === "on",
+      verificationShowMaskedIP: body.verificationShowMaskedIP === "on",
+      verificationShowAccountCreated: body.verificationShowAccountCreated === "on"
+    },
+    { upsert: true, new: true, returnDocument: "after" }
+  );
+}
+
+app.post("/dashboard/:guildId/verification", async (req, res) => {
+  await saveVerificationConfig(req.params.guildId, req.body);
+  res.redirect(`/dashboard/${req.params.guildId}/verification`);
+});
+
+app.post("/dashboard/:guildId/verification/send-panel", async (req, res) => {
+  try {
+    const guildId = req.params.guildId;
+    const guild = client.guilds.cache.get(guildId);
+
+    if (!guild) return res.send("❌ El bot no está en este servidor.");
+
+    const config = await saveVerificationConfig(guildId, req.body);
+
+    const channel = guild.channels.cache.get(config.verificationPanelChannelId);
+    if (!channel) return res.send("❌ Seleccioná un canal del panel primero.");
+
+    const embed = new EmbedBuilder()
+      .setTitle(config.verificationEmbedTitle || "✅ Verificación")
+      .setDescription(config.verificationEmbedMessage || "Presioná el botón para verificarte.")
+      .setColor(config.verificationEmbedColor || "#23a559")
+      .setFooter({ text: "Sistema de Verificación" })
+      .setTimestamp();
+
+    const verifyUrl = `${process.env.BASE_URL}/verify/${guildId}`;
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setLabel("✅ Verificarme")
+        .setStyle(ButtonStyle.Link)
+        .setURL(verifyUrl)
+    );
+
+    await channel.send({
+      embeds: [embed],
+      components: [row]
+    });
+
+    return res.redirect(`/dashboard/${guildId}/verification`);
+  } catch (error) {
+    console.log("❌ Error enviando panel de verificación:", error);
+    return res.send("❌ Error enviando panel de verificación.");
+  }
+});
+
+// =========================
+// VERIFICACION WEB
+// =========================
+
+app.get("/verify/:guildId", async (req, res) => {
+  const guildId = req.params.guildId;
+
+  res.send(`
+    <html>
+    <head>
+      <title>Verificación</title>
+    </head>
+    <body style="background:#0f172a;color:white;font-family:Arial;text-align:center;padding-top:100px;">
+      <h1>✅ Verificación</h1>
+      <p>Para verificarte en el servidor continuá con Discord.</p>
+
+      <a href="/verify/${guildId}/discord"
+      style="
+      background:#5865f2;
+      color:white;
+      padding:15px 25px;
+      border-radius:10px;
+      text-decoration:none;
+      display:inline-block;
+      margin-top:20px;">
+      Verificarme con Discord
+      </a>
+    </body>
+    </html>
+  `);
+});
+
+app.get("/verify/:guildId/discord", (req, res) => {
+  const guildId = req.params.guildId;
+
+  const url =
+    "https://discord.com/oauth2/authorize" +
+    `?client_id=${process.env.CLIENT_ID}` +
+    `&redirect_uri=${encodeURIComponent(process.env.BASE_URL + "/verify/callback")}` +
+    "&response_type=code" +
+    `&state=${guildId}` +
+    "&scope=identify";
+
+  res.redirect(url);
+});
+
+// =========================
+// INVITE BOT
+// =========================
+function maskIP(ip = "") {
+  if (!ip) return "No disponible";
+
+  if (ip.includes(".")) {
+    const parts = ip.split(".");
+    return `${parts[0]}.xxx.xxx.${parts[3] || "x"}`;
+  }
+
+  return ip.slice(0, 6) + "..." + ip.slice(-4);
+}
+
+function getClientIP(req) {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (forwarded) return forwarded.split(",")[0].trim();
+
+  return req.socket.remoteAddress || "";
+}
+
+app.get("/verify/callback", async (req, res) => {
+  try {
+    const code = req.query.code;
+    const guildId = req.query.state;
+
+    if (!code || !guildId) {
+      return res.send("❌ Faltan datos de verificación.");
+    }
+
+    const config = await GuildConfig.findOne({ guildId });
+    if (!config) return res.send("❌ Este servidor no tiene verificación configurada.");
+
+    const tokenRes = await axios.post(
+      "https://discord.com/api/oauth2/token",
+      new URLSearchParams({
+        client_id: process.env.CLIENT_ID,
+        client_secret: process.env.CLIENT_SECRET,
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: process.env.BASE_URL + "/verify/callback"
+      }),
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+    );
+
+    const userRes = await axios.get("https://discord.com/api/users/@me", {
+      headers: {
+        Authorization: `Bearer ${tokenRes.data.access_token}`
+      }
+    });
+
+    const user = userRes.data;
+    const guild = client.guilds.cache.get(guildId);
+
+    if (!guild) return res.send("❌ El bot no está en este servidor.");
+
+    const member = await guild.members.fetch(user.id).catch(() => null);
+
+    if (!member) {
+      return res.send("❌ Tenés que estar dentro del servidor para verificarte.");
+    }
+
+    if (config.verificationRoleId) {
+      await member.roles.add(config.verificationRoleId).catch(console.error);
+    }
+
+    const ip = getClientIP(req);
+    const geo = await axios.get(`http://ip-api.com/json/${ip}?fields=status,country,regionName,city,isp,proxy,hosting,query`)
+      .then(r => r.data)
+      .catch(() => null);
+
+    const fields = [];
+
+    fields.push({ name: "👤 Usuario", value: `<@${user.id}>`, inline: true });
+    fields.push({ name: "🆔 ID", value: `\`${user.id}\``, inline: true });
+
+    if (config.verificationShowMaskedIP) {
+      fields.push({ name: "🌐 IP", value: `\`${maskIP(ip)}\``, inline: true });
+    }
+
+    if (geo?.status === "success") {
+      if (config.verificationShowCity) {
+        fields.push({ name: "🏙️ Ciudad aproximada", value: geo.city || "No disponible", inline: true });
+      }
+
+      if (config.verificationShowRegion) {
+        fields.push({ name: "📍 Región aproximada", value: geo.regionName || "No disponible", inline: true });
+      }
+
+      if (config.verificationShowCountry) {
+        fields.push({ name: "🌎 País", value: geo.country || "No disponible", inline: true });
+      }
+
+      if (config.verificationShowISP) {
+        fields.push({ name: "📡 ISP", value: geo.isp || "No disponible", inline: true });
+      }
+
+      if (config.verificationShowVPN) {
+        const vpnText = geo.proxy || geo.hosting ? "Posible VPN/Proxy/Hosting" : "No detectado";
+        fields.push({ name: "🛡️ VPN / Proxy", value: vpnText, inline: true });
+      }
+    }
+
+    if (config.verificationShowAccountCreated) {
+      const createdAt = new Date((BigInt(user.id) >> 22n) + 1420070400000n);
+      fields.push({
+        name: "📅 Cuenta creada",
+        value: `<t:${Math.floor(createdAt.getTime() / 1000)}:F>`,
+        inline: false
+      });
+    }
+
+    const logEmbed = new EmbedBuilder()
+      .setTitle("✅ Usuario verificado")
+      .setColor(config.verificationEmbedColor || "#23a559")
+      .setThumbnail(`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`)
+      .addFields(fields)
+      .setTimestamp();
+
+    const logChannel = guild.channels.cache.get(config.verificationLogsChannelId);
+
+    if (logChannel) {
+      await logChannel.send({ embeds: [logEmbed] }).catch(console.error);
+    }
+
+    res.send(`
+      <html>
+      <body style="background:#020617;color:white;font-family:Arial;text-align:center;padding-top:100px;">
+        <h1>✅ Verificación completada</h1>
+        <p>Ya fuiste verificado correctamente en el servidor.</p>
+      </body>
+      </html>
+    `);
+
+  } catch (error) {
+    console.log("❌ Error verify callback:", error.response?.data || error);
+    res.send("❌ Error al completar la verificación.");
+  }
+});
 app.get("/invite", (req, res) => {
   const url =
     "https://discord.com/oauth2/authorize" +
@@ -331,6 +611,14 @@ app.get("/invite", (req, res) => {
 
   res.redirect(url);
 });
+  const url =
+    "https://discord.com/oauth2/authorize" +
+    `?client_id=${process.env.CLIENT_ID}` +
+    "&permissions=8" +
+    "&scope=bot%20applications.commands";
+
+  res.redirect(url);
+
 function parseTopic(topic = "") {
   const data = {};
 

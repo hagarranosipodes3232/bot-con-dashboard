@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Verificación Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">✅</div>
+      <div>
+        <div class="logo-title">012 Bot</div>
+        <div class="logo-status"><span class="status-dot"></span> Online</div>
+      </div>
+    </div>
+
+    <div class="menu">
+      <a href="/servers">🏠 Inicio</a>
+      <a href="/dashboard/<%= guild.id %>/tickets">🎫 Tickets</a>
+      <a class="active">✅ Verificación</a>
+      <a>📜 Logs</a>
+      <a>⚙️ Configuración</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <h1>✅ Verificación › <%= guild.name %></h1>
+
+    <form method="POST" action="/dashboard/<%= guild.id %>/verification">
+
+      <div class="dashboard-grid">
+
+        <section>
+          <div class="card">
+            <h2>✅ Panel de Verificación</h2>
+
+            <label>Canal donde enviar el panel</label>
+            <select class="input" name="verificationPanelChannelId">
+              <option value="">Seleccionar canal</option>
+              <% textChannels.forEach(channel => { %>
+                <option value="<%= channel.id %>" <%= config.verificationPanelChannelId === channel.id ? "selected" : "" %>>
+                  #<%= channel.name %>
+                </option>
+              <% }) %>
+            </select>
+
+            <label>Rol que se entrega al verificar</label>
+            <select class="input" name="verificationRoleId">
+              <option value="">Seleccionar rol</option>
+              <% roles.forEach(role => { %>
+                <option value="<%= role.id %>" <%= config.verificationRoleId === role.id ? "selected" : "" %>>
+                  <%= role.name %>
+                </option>
+              <% }) %>
+            </select>
+
+            <label>Canal de logs</label>
+            <select class="input" name="verificationLogsChannelId">
+              <option value="">Seleccionar canal</option>
+              <% textChannels.forEach(channel => { %>
+                <option value="<%= channel.id %>" <%= config.verificationLogsChannelId === channel.id ? "selected" : "" %>>
+                  #<%= channel.name %>
+                </option>
+              <% }) %>
+            </select>
+
+            <label>Título del embed</label>
+            <input class="input" name="verificationEmbedTitle" id="verifyTitle"
+              value="<%= config.verificationEmbedTitle || '✅ Verificación' %>">
+
+            <label>Mensaje del embed</label>
+            <textarea class="textarea big" name="verificationEmbedMessage" id="verifyMessage"><%= config.verificationEmbedMessage || 'Presioná el botón para verificarte.' %></textarea>
+
+            <label>Color del embed</label>
+            <input class="input" name="verificationEmbedColor" id="verifyColor"
+              value="<%= config.verificationEmbedColor || '#23a559' %>">
+          </div>
+
+          <div class="card">
+            <h2>🔎 Datos que se mostrarán en logs</h2>
+
+            <label><input type="checkbox" name="verificationShowCity" <%= config.verificationShowCity ? "checked" : "" %>> Ciudad aproximada</label>
+            <label><input type="checkbox" name="verificationShowRegion" <%= config.verificationShowRegion ? "checked" : "" %>> Región aproximada</label>
+            <label><input type="checkbox" name="verificationShowCountry" <%= config.verificationShowCountry ? "checked" : "" %>> País</label>
+            <label><input type="checkbox" name="verificationShowISP" <%= config.verificationShowISP ? "checked" : "" %>> ISP / Proveedor</label>
+            <label><input type="checkbox" name="verificationShowVPN" <%= config.verificationShowVPN ? "checked" : "" %>> VPN / Proxy probable</label>
+            <label><input type="checkbox" name="verificationShowMaskedIP" <%= config.verificationShowMaskedIP ? "checked" : "" %>> IP enmascarada</label>
+            <label><input type="checkbox" name="verificationShowAccountCreated" <%= config.verificationShowAccountCreated ? "checked" : "" %>> Fecha de creación Discord</label>
+          </div>
+
+          <div class="actions">
+            <button class="btn green" type="submit">💾 Guardar cambios</button>
+            <button class="btn" type="submit" formaction="/dashboard/<%= guild.id %>/verification/send-panel">
+              📤 Enviar panel
+            </button>
+          </div>
+        </section>
+
+        <aside class="preview-box">
+          <h2>👀 Vista previa</h2>
+
+          <div class="discord-preview">
+            <div class="preview-author">🤖 012 Bot <span>APP</span></div>
+
+            <div class="preview-embed" id="verifyPreviewEmbed">
+              <h3 id="verifyPreviewTitle"><%= config.verificationEmbedTitle || '✅ Verificación' %></h3>
+              <p id="verifyPreviewMessage"><%= config.verificationEmbedMessage || 'Presioná el botón para verificarte.' %></p>
+            </div>
+
+            <div class="discord-buttons">
+              <button type="button" class="discord-btn">✅ Verificarme</button>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+    </form>
+  </main>
+</div>
+
+<script>
+const verifyTitle = document.getElementById("verifyTitle");
+const verifyMessage = document.getElementById("verifyMessage");
+const verifyColor = document.getElementById("verifyColor");
+
+const verifyPreviewTitle = document.getElementById("verifyPreviewTitle");
+const verifyPreviewMessage = document.getElementById("verifyPreviewMessage");
+const verifyPreviewEmbed = document.getElementById("verifyPreviewEmbed");
+
+function updateVerifyPreview() {
+  verifyPreviewTitle.innerText = verifyTitle.value || "✅ Verificación";
+  verifyPreviewMessage.innerText = verifyMessage.value || "Presioná el botón para verificarte.";
+  verifyPreviewEmbed.style.borderLeftColor = verifyColor.value || "#23a559";
+}
+
+verifyTitle.addEventListener("input", updateVerifyPreview);
+verifyMessage.addEventListener("input", updateVerifyPreview);
+verifyColor.addEventListener("input", updateVerifyPreview);
+updateVerifyPreview();
+</script>
+
+</body>
+</html>
