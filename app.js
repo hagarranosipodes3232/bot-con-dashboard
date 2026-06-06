@@ -25,7 +25,9 @@ const {
 const app = express();
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds]
+  intents: [
+    GatewayIntentBits.Guilds
+  ]
 });
 
 mongoose.connect(process.env.MONGO_URI)
@@ -60,7 +62,10 @@ app.get("/login", (req, res) => {
 
 app.get("/callback", async (req, res) => {
   const code = req.query.code;
-  if (!code) return res.send("❌ No llegó el código de Discord.");
+
+  if (!code) {
+    return res.send("❌ No llegó el código de Discord.");
+  }
 
   try {
     const tokenRes = await axios.post(
@@ -72,7 +77,11 @@ app.get("/callback", async (req, res) => {
         code,
         redirect_uri: process.env.BASE_URL + "/callback"
       }),
-      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        }
+      }
     );
 
     req.session.access_token = tokenRes.data.access_token;
@@ -84,15 +93,21 @@ app.get("/callback", async (req, res) => {
 });
 
 app.get("/servers", async (req, res) => {
-  if (!req.session.access_token) return res.redirect("/login");
+  if (!req.session.access_token) {
+    return res.redirect("/login");
+  }
 
   try {
     const userRes = await axios.get("https://discord.com/api/users/@me", {
-      headers: { Authorization: `Bearer ${req.session.access_token}` }
+      headers: {
+        Authorization: `Bearer ${req.session.access_token}`
+      }
     });
 
     const guildsRes = await axios.get("https://discord.com/api/users/@me/guilds", {
-      headers: { Authorization: `Bearer ${req.session.access_token}` }
+      headers: {
+        Authorization: `Bearer ${req.session.access_token}`
+      }
     });
 
     const guilds = guildsRes.data.filter(guild => {
@@ -115,27 +130,43 @@ app.get("/dashboard/:guildId/tickets", async (req, res) => {
 });
 
 app.get("/dashboard/:guildId", async (req, res) => {
-  if (!req.session.access_token) return res.redirect("/login");
+  if (!req.session.access_token) {
+    return res.redirect("/login");
+  }
 
   const guildId = req.params.guildId;
   const guild = client.guilds.cache.get(guildId);
 
-  if (!guild) return res.send("❌ El bot no está en este servidor.");
+  if (!guild) {
+    return res.send("❌ El bot no está en este servidor.");
+  }
 
   let config = await GuildConfig.findOne({ guildId });
-  if (!config) config = await GuildConfig.create({ guildId });
+
+  if (!config) {
+    config = await GuildConfig.create({ guildId });
+  }
 
   const categories = guild.channels.cache
     .filter(ch => ch.type === ChannelType.GuildCategory)
-    .map(ch => ({ id: ch.id, name: ch.name }));
+    .map(ch => ({
+      id: ch.id,
+      name: ch.name
+    }));
 
   const textChannels = guild.channels.cache
     .filter(ch => ch.type === ChannelType.GuildText)
-    .map(ch => ({ id: ch.id, name: ch.name }));
+    .map(ch => ({
+      id: ch.id,
+      name: ch.name
+    }));
 
   const roles = guild.roles.cache
     .filter(role => role.name !== "@everyone")
-    .map(role => ({ id: role.id, name: role.name }));
+    .map(role => ({
+      id: role.id,
+      name: role.name
+    }));
 
   res.render("dashboard", {
     guild,
@@ -146,10 +177,10 @@ app.get("/dashboard/:guildId", async (req, res) => {
   });
 });
 
-async function saveTicketConfig(guildId, body, forceEnabled = false) {
+function buildTicketButtonsFromBody(body) {
   const ticketButtons = [];
 
-  for (let i = 1; i <= 20; i++) {
+  for (let i = 1; i <= 10; i++) {
     const label = body[`buttonLabel_${i}`];
     const emoji = body[`buttonEmoji_${i}`];
     const style = body[`buttonStyle_${i}`];
@@ -166,6 +197,22 @@ async function saveTicketConfig(guildId, body, forceEnabled = false) {
     }
   }
 
+  if (ticketButtons.length === 0) {
+    ticketButtons.push({
+      enabled: true,
+      label: "Abrir Ticket",
+      emoji: "🎫",
+      style: "Success",
+      welcomeMessage: ""
+    });
+  }
+
+  return ticketButtons;
+}
+
+async function saveTicketConfig(guildId, body, forceEnabled = false) {
+  const ticketButtons = buildTicketButtonsFromBody(body);
+
   return GuildConfig.findOneAndUpdate(
     { guildId },
     {
@@ -178,18 +225,11 @@ async function saveTicketConfig(guildId, body, forceEnabled = false) {
       supportRoleId: body.supportRoleId || "",
       ticketNamePattern: body.ticketNamePattern || "ticket-{user.username}",
       ticketLimit: Number(body.ticketLimit || 1),
-      ticketWelcomeMessage:
-        body.ticketWelcomeMessage && body.ticketWelcomeMessage.trim() !== ""
-          ? body.ticketWelcomeMessage
-          : "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.",
       ticketPanelMessage:
         body.ticketPanelMessage && body.ticketPanelMessage.trim() !== ""
           ? body.ticketPanelMessage
           : "Usá el botón de abajo para abrir un ticket.",
       ticketEmbedColor: body.ticketEmbedColor || "#23a559",
-      ticketButtonLabel: body.ticketButtonLabel || "Abrir Ticket",
-      ticketButtonEmoji: body.ticketButtonEmoji || "🎫",
-      ticketButtonStyle: body.ticketButtonStyle || "Success",
       ticketButtons
     },
     { upsert: true, new: true, returnDocument: "after" }
@@ -235,32 +275,7 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
       Danger: ButtonStyle.Danger
     };
 
-    const savedButtons = [];
-
-    for (let i = 1; i <= 10; i++) {
-      const label = req.body[`buttonLabel_${i}`];
-      const emoji = req.body[`buttonEmoji_${i}`];
-      const style = req.body[`buttonStyle_${i}`];
-      const welcomeMessage = req.body[`buttonWelcome_${i}`];
-
-      if (label || emoji || style || welcomeMessage) {
-
-savedButtons.push({
-  enabled: true,
-  label: label || `Ticket ${i}`,
-  emoji: emoji || "🎫",
-  style: style || "Success",
-  welcomeMessage: welcomeMessage || ""
-});
-             }
-    }
-
-    const buttons = savedButtons.length
-      ? savedButtons.slice(0, 10)
-      : [
-          { label: "Abrir Ticket", emoji: "🎫", style: "Success", welcomeMessage: "" }
-        ];
-
+    const buttons = (config.ticketButtons || []).slice(0, 10);
     const rows = [];
 
     for (let i = 0; i < buttons.length; i += 5) {
@@ -281,12 +296,6 @@ savedButtons.push({
       rows.push(row);
     }
 
-    await GuildConfig.findOneAndUpdate(
-      { guildId },
-      { ticketButtons: buttons },
-      { new: true }
-    );
-
     await channel.send({
       embeds: [embed],
       components: rows
@@ -298,7 +307,8 @@ savedButtons.push({
     return res.send("❌ Error enviando panel. Mirá los logs de Render.");
   }
 });
-   app.get("/invite", (req, res) => {
+
+app.get("/invite", (req, res) => {
   const url =
     "https://discord.com/oauth2/authorize" +
     `?client_id=${process.env.CLIENT_ID}` +
@@ -360,17 +370,19 @@ client.on("interactionCreate", async interaction => {
         interaction.customId.replace("open_ticket_", "")
       );
 
-      const enabledButtons = config.ticketButtons?.length
+      const buttons = config.ticketButtons?.length
         ? config.ticketButtons.filter(btn => btn.enabled)
         : [
-            { label: "Consultas", emoji: "❓", style: "Primary", welcomeMessage: "" },
-            { label: "Soporte", emoji: "🛠️", style: "Success", welcomeMessage: "" },
-            { label: "Compras", emoji: "🛒", style: "Secondary", welcomeMessage: "" },
-            { label: "Reportes", emoji: "🚨", style: "Danger", welcomeMessage: "" },
-            { label: "Otros", emoji: "📩", style: "Primary", welcomeMessage: "" }
+            {
+              enabled: true,
+              label: "Abrir Ticket",
+              emoji: "🎫",
+              style: "Success",
+              welcomeMessage: ""
+            }
           ];
 
-      console.log("BOTONES GUARDADOS:", config.ticketButtons);
+      const selectedButton = buttons[buttonIndex];
 
       const existing = interaction.guild.channels.cache.find(ch =>
         ch.topic &&
@@ -429,12 +441,10 @@ client.on("interactionCreate", async interaction => {
         permissionOverwrites: overwrites
       });
 
-console.log("BOTON SELECCIONADO:", selectedButton);
-console.log("MENSAJE DEL BOTON:", selectedButton?.welcomeMessage);
-
-     const welcomeRaw =
-  selectedButton?.welcomeMessage ||
-  "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
+      const welcomeRaw =
+        selectedButton?.welcomeMessage && selectedButton.welcomeMessage.trim() !== ""
+          ? selectedButton.welcomeMessage
+          : "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
 
       const welcomeMessage = replaceVars(
         welcomeRaw,
@@ -478,17 +488,19 @@ console.log("MENSAJE DEL BOTON:", selectedButton?.welcomeMessage);
         components: [ticketButtons]
       });
 
-      const logEmbed = new EmbedBuilder()
-        .setTitle("🎫 Ticket creado")
-        .setColor(config.ticketEmbedColor || "#23a559")
-        .setDescription(
-          `🎫 **Canal:** ${ticketChannel}\n` +
-          `👤 **Usuario:** ${interaction.user}\n` +
-          `🆔 **ID:** \`${interaction.user.id}\``
-        )
-        .setTimestamp();
-
-      await sendLog(interaction.guild, config, logEmbed);
+      await sendLog(
+        interaction.guild,
+        config,
+        new EmbedBuilder()
+          .setTitle("🎫 Ticket creado")
+          .setColor(config.ticketEmbedColor || "#23a559")
+          .setDescription(
+            `🎫 **Canal:** ${ticketChannel}\n` +
+            `👤 **Usuario:** ${interaction.user}\n` +
+            `🆔 **ID:** \`${interaction.user.id}\``
+          )
+          .setTimestamp()
+      );
 
       return interaction.reply({
         content: `✅ Ticket creado: ${ticketChannel}`,
@@ -648,18 +660,21 @@ console.log("MENSAJE DEL BOTON:", selectedButton?.welcomeMessage);
         }).catch(() => {});
       }
 
-      const logEmbed = new EmbedBuilder()
-        .setTitle("🔒 Ticket cerrado")
-        .setColor(config?.ticketEmbedColor || "#23a559")
-        .setDescription(
-          `🎫 **Canal:** ${interaction.channel.name}\n` +
-          `👤 **Usuario:** <@${data.owner}>\n` +
-          `👮 **Cerrado por:** ${interaction.user}\n` +
-          `📝 **Razón:**\n${reason}`
-        )
-        .setTimestamp();
-
-      await sendLog(interaction.guild, config, logEmbed, [transcript]);
+      await sendLog(
+        interaction.guild,
+        config,
+        new EmbedBuilder()
+          .setTitle("🔒 Ticket cerrado")
+          .setColor(config?.ticketEmbedColor || "#23a559")
+          .setDescription(
+            `🎫 **Canal:** ${interaction.channel.name}\n` +
+            `👤 **Usuario:** <@${data.owner}>\n` +
+            `👮 **Cerrado por:** ${interaction.user}\n` +
+            `📝 **Razón:**\n${reason}`
+          )
+          .setTimestamp(),
+        [transcript]
+      );
 
       setTimeout(() => {
         interaction.channel.delete().catch(() => {});
@@ -712,7 +727,7 @@ console.log("MENSAJE DEL BOTON:", selectedButton?.welcomeMessage);
 });
 
 client.once("clientReady", () => {
-  console.log(`🤖 Bot conected como ${client.user.tag}`);
+  console.log(`🤖 Bot conectado como ${client.user.tag}`);
 });
 
 client.login(process.env.TOKEN);
