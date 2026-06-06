@@ -441,11 +441,7 @@ client.on("interactionCreate", async interaction => {
         permissionOverwrites: overwrites
       });
 
-      const welcomeRaw =
-        selectedButton?.welcomeMessage && selectedButton.welcomeMessage.trim() !== ""
-          ? selectedButton.welcomeMessage
-           : "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
-
+  const welcomeRaw = selectedButton?.welcomeMessage || "NO HAY MENSAJE CONFIGURADO EN ESTE BOTÓN";
       const welcomeMessage = replaceVars(
         welcomeRaw,
         interaction,
