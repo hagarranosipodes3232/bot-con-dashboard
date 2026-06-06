@@ -65,8 +65,8 @@ const guildConfigSchema = new mongoose.Schema({
   ticketEmbedColor: {
     type: String,
     default: "#23a559"
-  }
-,
+  },
+
 
 ticketButtonLabel: {
   type: String,
@@ -81,8 +81,8 @@ ticketButtonEmoji: {
 ticketButtonStyle: {
   type: String,
   default: "Success"
-}
-,
+},
+
 
 ticketButtons: {
   type: [
@@ -95,7 +95,77 @@ ticketButtons: {
     }
   ],
   default: []
+},
+verificationEnabled: {
+  type: Boolean,
+  default: false
+},
+
+verificationPanelChannelId: {
+  type: String,
+  default: ""
+},
+
+verificationRoleId: {
+  type: String,
+  default: ""
+},
+
+verificationLogsChannelId: {
+  type: String,
+  default: ""
+},
+
+verificationEmbedTitle: {
+  type: String,
+  default: "✅ Verificación"
+},
+
+verificationEmbedMessage: {
+  type: String,
+  default: "Presioná el botón para verificarte."
+},
+
+verificationEmbedColor: {
+  type: String,
+  default: "#23a559"
+},
+
+verificationShowCity: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowRegion: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowCountry: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowISP: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowVPN: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowMaskedIP: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowAccountCreated: {
+  type: Boolean,
+  default: true
 }
+
 }, {
   timestamps: true
 });
