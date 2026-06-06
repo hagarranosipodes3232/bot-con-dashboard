@@ -2,10 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tickets Dashboard</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
-
 <body>
 <div class="layout">
   <aside class="sidebar">
@@ -16,7 +16,6 @@
         <div class="logo-status"><span class="status-dot"></span> Online</div>
       </div>
     </div>
-
     <div class="menu">
       <a href="/servers">🏠 Inicio</a>
       <a class="active">🎫 Tickets</a>
@@ -24,245 +23,155 @@
       <a>📜 Logs</a>
       <a>⚙️ Configuración</a>
     </div>
+    <div class="sidebar-footer"><span>Servidor actual</span><strong><%= guild.name %></strong></div>
   </aside>
 
   <main class="main">
     <div class="page-header">
-  <div class="page-title">
-    <h1>🎫 Ticketing › <%= guild.name %></h1>
-    <p>Configurá tu sistema de tickets, botones, mensajes y vista previa en tiempo real.</p>
-  </div>
-<div class="header-badge">
-  <span class="status-dot"></span>
-  Sistema Online
-</div>
-</div>
-
-<div class="stats-grid">
-  <div class="stat-card">
-    <div class="stat-icon">🎫</div>
-    <span>Sistema</span>
-    <strong>Tickets</strong>
-  </div>
-
-  <div class="stat-card">
-    <div class="stat-icon">👥</div>
-    <span>Servidor</span>
-    <strong><%= guild.name %></strong>
-  </div>
-
-  <div class="stat-card">
-    <div class="stat-icon">⚙️</div>
-    <span>Estado</span>
-    <strong>Configurado</strong>
-  </div>
-
-  <div class="stat-card">
-    <div class="stat-icon">🚀</div>
-    <span>Bot</span>
-    <strong>Online</strong>
-  </div>
-</div>
+      <div>
+        <span class="eyebrow">Dashboard premium</span>
+        <h1>🎫 Ticketing</h1>
+        <p>Configurá panel, botones, mensaje interno, soporte, categoría y logs en una sola pantalla.</p>
+      </div>
+      <div class="header-badge"><span>🟢 Bot online</span><strong><%= guild.memberCount || 0 %> miembros</strong></div>
+    </div>
 
     <form id="ticketForm" method="POST" action="/dashboard/<%= guild.id %>/tickets">
+      <div class="stats-grid">
+        <div class="stat-card"><h3>🎫</h3><span>Panel</span><strong>Tickets</strong></div>
+        <div class="stat-card"><h3>👥</h3><span>Miembros</span><strong><%= guild.memberCount || 0 %></strong></div>
+        <div class="stat-card"><h3>🛡️</h3><span>Soporte</span><strong>Configurable</strong></div>
+        <div class="stat-card"><h3>⚡</h3><span>Estado</span><strong>Online</strong></div>
+      </div>
+
       <div class="dashboard-grid">
         <section>
-
-          <div class="card">
-            <h2>🎫 Panel de Tickets</h2>
+          <div class="card premium-card">
+            <div class="card-head"><div><h2>🎫 Panel de Tickets</h2><p>Esto se publica en el canal elegido.</p></div><span class="mini-pill">Embed principal</span></div>
 
             <label>Nombre del panel</label>
-            <input class="input" name="ticketPanelName" id="panelName"
-              placeholder="Ej: Sistema de Tickets — 012 Shop"
-              value="<%= config.ticketPanelName || '' %>">
+            <input class="input" name="ticketPanelName" id="panelName" placeholder="Ej: Sistema de Tickets — 012 Shop" value="<%= config.ticketPanelName || '' %>">
 
-            <label>Canal del panel</label>
-            <select class="input" name="ticketPanelChannelId">
-              <option value="">Seleccionar canal</option>
-              <% textChannels.forEach(channel => { %>
-                <option value="<%= channel.id %>" <%= config.ticketPanelChannelId === channel.id ? "selected" : "" %>>
-                  #<%= channel.name %>
-                </option>
-              <% }) %>
-            </select>
-
-            <label>Rol de soporte</label>
-            <select class="input" name="supportRoleId">
-              <option value="">Seleccionar rol</option>
-              <% roles.forEach(role => { %>
-                <option value="<%= role.id %>" <%= config.supportRoleId === role.id ? "selected" : "" %>>
-                  <%= role.name %>
-                </option>
-              <% }) %>
-            </select>
+            <div class="two-grid">
+              <div>
+                <label>Canal del panel</label>
+                <select class="input" name="ticketPanelChannelId">
+                  <option value="">Seleccionar canal</option>
+                  <% textChannels.forEach(channel => { %>
+                    <option value="<%= channel.id %>" <%= config.ticketPanelChannelId === channel.id ? "selected" : "" %>>#<%= channel.name %></option>
+                  <% }) %>
+                </select>
+              </div>
+              <div>
+                <label>Rol de soporte</label>
+                <select class="input" name="supportRoleId">
+                  <option value="">Seleccionar rol</option>
+                  <% roles.forEach(role => { %>
+                    <option value="<%= role.id %>" <%= config.supportRoleId === role.id ? "selected" : "" %>><%= role.name %></option>
+                  <% }) %>
+                </select>
+              </div>
+            </div>
 
             <label>Color del embed</label>
             <div class="color-row">
-              <% ["#23a559","#3498db","#9b59b6","#e91e63","#f1c40f","#e67e22","#e74c3c","#95a5a6","#ffffff"].forEach(color => { %>
-                <label class="color-dot" style="background:<%= color %>">
-                  <input type="radio" name="ticketEmbedColor" value="<%= color %>"
-                    <%= (config.ticketEmbedColor || "#23a559") === color ? "checked" : "" %>>
+              <% ["#23a559","#5865f2","#3498db","#9b59b6","#e91e63","#f1c40f","#e67e22","#e74c3c","#95a5a6","#ffffff"].forEach(color => { %>
+                <label class="color-dot" title="<%= color %>" style="background:<%= color %>">
+                  <input type="radio" name="ticketEmbedColor" value="<%= color %>" <%= (config.ticketEmbedColor || "#23a559") === color ? "checked" : "" %>>
                 </label>
               <% }) %>
             </div>
 
             <label>Mensaje del panel</label>
-            <textarea class="textarea big" name="ticketPanelMessage" id="panelMessage"
-placeholder="Escribí el mensaje que aparecerá en el panel de tickets..."><%= config.ticketPanelMessage || '' %></textarea>
+            <textarea class="textarea big" name="ticketPanelMessage" id="panelMessage" placeholder="Escribí el mensaje que aparecerá en el panel de tickets..."><%= config.ticketPanelMessage || '' %></textarea>
 
             <div class="button-editor-inline">
-              <h2>🎛 Botones del Panel</h2>
-              <p class="muted-text">Podés agregar hasta 10 botones personalizados.</p>
-
-              <div id="buttonsContainer">
-                <% 
-                  let savedButtons = config.ticketButtons || [];
-
-                  if (savedButtons.length === 0) {
-                    savedButtons = [
-                      {
-                        label: "Abrir Ticket",
-                        emoji: "🎫",
-                        style: "Success"
-                      }
-                    ];
-                  }
-
-                  savedButtons.slice(0, 10).forEach((btn, index) => { 
-                    const i = index + 1;
-                %>
-
-                  <div class="button-config-card">
-                    <h3>Botón <%= i %></h3>
-
-                    <label>Texto del botón</label>
-                    <input class="input" name="buttonLabel_<%= i %>" value="<%= btn.label || `Ticket ${i}` %>">
-
-                    <label>Emoji</label>
-                    <input class="input" name="buttonEmoji_<%= i %>" value="<%= btn.emoji || '🎫' %>">
-
-                    <label>Color del botón</label>
-                    <select class="input" name="buttonStyle_<%= i %>">
-                      <option value="Success" <%= btn.style === "Success" ? "selected" : "" %>>Verde</option>
-                      <option value="Primary" <%= btn.style === "Primary" ? "selected" : "" %>>Azul</option>
-                      <option value="Secondary" <%= btn.style === "Secondary" ? "selected" : "" %>>Gris</option>
-                      <option value="Danger" <%= btn.style === "Danger" ? "selected" : "" %>>Rojo</option>
-                    </select>
-
-                    <button type="button" class="btn red remove-button">🗑️ Eliminar botón</button>
-                  </div>
-
-                <% }) %>
+              <div class="section-title-row">
+                <div><h2>🎛 Botones del Panel</h2><p class="muted-text">Hasta 10 botones. Nombre, emoji y color.</p></div>
+                <button type="button" class="btn compact" id="addButton">➕ Agregar botón</button>
               </div>
 
+              <div id="buttonsContainer" class="buttons-editor-grid">
+                <% let savedButtons = config.ticketButtons || []; if (savedButtons.length === 0) { savedButtons = [{ label: "Abrir Ticket", emoji: "🎫", style: "Success" }]; } savedButtons.slice(0, 10).forEach((btn, index) => { const i = index + 1; %>
+                  <div class="button-config-card">
+                    <div class="button-card-head"><h3>Botón <%= i %></h3><button type="button" class="icon-remove remove-button">✕</button></div>
+                    <label>Texto del botón</label>
+                    <input class="input" name="buttonLabel_<%= i %>" value="<%= btn.label || `Ticket ${i}` %>">
+                    <div class="two-grid tight">
+                      <div><label>Emoji</label><input class="input" name="buttonEmoji_<%= i %>" value="<%= btn.emoji || '🎫' %>"></div>
+                      <div><label>Color</label><select class="input" name="buttonStyle_<%= i %>">
+                        <option value="Success" <%= btn.style === "Success" ? "selected" : "" %>>Verde</option>
+                        <option value="Primary" <%= btn.style === "Primary" ? "selected" : "" %>>Azul</option>
+                        <option value="Secondary" <%= btn.style === "Secondary" ? "selected" : "" %>>Gris</option>
+                        <option value="Danger" <%= btn.style === "Danger" ? "selected" : "" %>>Rojo</option>
+                      </select></div>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
               <input type="hidden" id="buttonCount" name="buttonCount" value="<%= savedButtons.length || 1 %>">
-
-              <button type="button" class="btn" id="addButton">
-                ➕ Agregar botón
-              </button>
             </div>
           </div>
 
-          <div class="card">
-            <h2>👋 Mensaje dentro del Ticket</h2>
-
+          <div class="card premium-card">
+            <div class="card-head"><div><h2>👋 Mensaje dentro del Ticket</h2><p>Un solo mensaje editable para todos los tickets.</p></div><span class="mini-pill green">Mensaje único</span></div>
             <label>Texto que aparece cuando se abre cualquier ticket</label>
-            <textarea class="textarea big" name="ticketWelcomeMessage" id="welcomeMessage"
-placeholder="Escribí el mensaje que aparecerá dentro del ticket..."><%= config.ticketWelcomeMessage || '' %></textarea>
-
+            <textarea class="textarea big" name="ticketWelcomeMessage" id="welcomeMessage" placeholder="Ej: Hola {user}, gracias por abrir un ticket. Contanos tu problema y el staff te atenderá pronto."><%= config.ticketWelcomeMessage || '' %></textarea>
             <small>Variables: {user}, {user.id}, {user.username}, {server.name}, {channel.name}</small>
           </div>
 
-          <div class="card">
-            <h2>⚙️ Configuración del Ticket</h2>
-
+          <div class="card premium-card">
+            <div class="card-head"><div><h2>⚙️ Configuración del Ticket</h2><p>Dónde se crean los tickets y cómo se nombran.</p></div><span class="mini-pill">Ajustes</span></div>
             <label>Categoría abierta</label>
             <select class="input" name="ticketCategoryId">
               <option value="">Seleccionar categoría</option>
               <% categories.forEach(category => { %>
-                <option value="<%= category.id %>" <%= config.ticketCategoryId === category.id ? "selected" : "" %>>
-                  <%= category.name %>
-                </option>
+                <option value="<%= category.id %>" <%= config.ticketCategoryId === category.id ? "selected" : "" %>><%= category.name %></option>
               <% }) %>
             </select>
-
-            <label>Patrón de nombres</label>
-            <input class="input" name="ticketNamePattern"
-              value="<%= config.ticketNamePattern || 'ticket-{user.username}' %>">
-
-            <label>Límite de tickets por usuario</label>
-            <input class="input" type="number" min="1" name="ticketLimit"
-              value="<%= config.ticketLimit || 1 %>">
+            <div class="two-grid">
+              <div><label>Patrón de nombres</label><input class="input" name="ticketNamePattern" value="<%= config.ticketNamePattern || 'ticket-{user.username}' %>"></div>
+              <div><label>Límite por usuario</label><input class="input" type="number" min="1" name="ticketLimit" value="<%= config.ticketLimit || 1 %>"></div>
+            </div>
           </div>
 
-          <div class="card">
-            <h2>📜 Registros</h2>
-
+          <div class="card premium-card">
+            <div class="card-head"><div><h2>📜 Registros</h2><p>Canal para aperturas, cierres y transcripts.</p></div><span class="mini-pill yellow">Logs</span></div>
             <label>Canal de registros</label>
             <select class="input" name="ticketLogsChannelId">
               <option value="">Seleccionar canal</option>
               <% textChannels.forEach(channel => { %>
-                <option value="<%= channel.id %>" <%= config.ticketLogsChannelId === channel.id ? "selected" : "" %>>
-                  #<%= channel.name %>
-                </option>
+                <option value="<%= channel.id %>" <%= config.ticketLogsChannelId === channel.id ? "selected" : "" %>>#<%= channel.name %></option>
               <% }) %>
             </select>
           </div>
 
-          <div class="actions">
-            <button class="btn green" type="submit" formaction="/dashboard/<%= guild.id %>/tickets">
-              💾 Guardar cambios
-            </button>
-
-            <button class="btn" type="submit" formaction="/dashboard/<%= guild.id %>/tickets/send-panel">
-              📤 Enviar panel al canal
-            </button>
+          <div class="actions floating-actions">
+            <button class="btn green" type="submit" formaction="/dashboard/<%= guild.id %>/tickets">💾 Guardar cambios</button>
+            <button class="btn" type="submit" formaction="/dashboard/<%= guild.id %>/tickets/send-panel">📤 Enviar panel al canal</button>
           </div>
-
         </section>
 
-        <aside class="preview-box">
-          <h2>👀 Vista previa</h2>
-
+        <aside class="preview-box premium-preview">
+          <div class="preview-sticky-head"><h2>👀 Vista previa</h2><span>En vivo</span></div>
           <h3 class="preview-section-title">📢 Panel en el canal</h3>
-
           <div class="discord-preview">
-            <div class="preview-author">
-              🤖 012 Bot <span>APP</span>
-            </div>
-
-            <div class="preview-embed" id="previewEmbed">
-              <h3 id="previewTitle"><%= config.ticketPanelName || 'Sistema de Tickets — 012 Shop' %></h3>
-              <p id="previewText"><%= config.ticketPanelMessage || 'Selecciona una opción para abrir un ticket.' %></p>
-            </div>
-
+            <div class="preview-author">🤖 012 Bot <span>APP</span></div>
+            <div class="preview-embed" id="previewEmbed"><h3 id="previewTitle"><%= config.ticketPanelName || 'Sistema de Tickets — 012 Shop' %></h3><p id="previewText"><%= config.ticketPanelMessage || 'Selecciona una opción para abrir un ticket.' %></p></div>
             <div class="discord-buttons" id="previewButtonsContainer"></div>
           </div>
 
           <h3 class="preview-section-title">🎫 Ticket abierto por el usuario</h3>
-
           <div class="discord-preview ticket-message-preview">
-            <div class="preview-author">
-              🤖 012 Bot <span>APP</span>
-            </div>
-
+            <div class="preview-author">🤖 012 Bot <span>APP</span></div>
             <div class="preview-embed" id="previewTicketEmbed">
               <h3>🎫 Ticket abierto</h3>
-
               <p id="welcomePreview"><%= config.ticketWelcomeMessage || 'Hola {user}, un miembro del staff te atenderá pronto.' %></p>
-
-              <div class="preview-fields">
-                <div><strong>👤 Usuario</strong><br>@Usuario</div>
-                <div><strong>🆔 ID</strong><br>123456789</div>
-                <div><strong>📌 Estado</strong><br>Abierto</div>
-              </div>
+              <div class="preview-fields"><div><strong>👤 Usuario</strong><br>@Usuario</div><div><strong>🆔 ID</strong><br>123456789</div><div><strong>📌 Estado</strong><br>Abierto</div></div>
             </div>
-
-            <div class="discord-buttons">
-              <button type="button" class="discord-btn primary">🙋 Reclamar Ticket</button>
-              <button type="button" class="discord-btn danger">🔒 Cerrar Ticket</button>
-            </div>
+            <div class="discord-buttons"><button type="button" class="discord-btn primary">🙋 Reclamar Ticket</button><button type="button" class="discord-btn danger">🔒 Cerrar Ticket</button></div>
           </div>
+          <div class="preview-tip"><strong>Tip:</strong> Usá <code>{user}</code> para mencionar automáticamente al usuario.</div>
         </aside>
       </div>
     </form>
@@ -273,144 +182,49 @@ placeholder="Escribí el mensaje que aparecerá dentro del ticket..."><%= config
 const panelName = document.getElementById("panelName");
 const panelMessage = document.getElementById("panelMessage");
 const welcomeMessage = document.getElementById("welcomeMessage");
-
 const previewTitle = document.getElementById("previewTitle");
 const previewText = document.getElementById("previewText");
 const welcomePreview = document.getElementById("welcomePreview");
 const previewEmbed = document.getElementById("previewEmbed");
 const previewTicketEmbed = document.getElementById("previewTicketEmbed");
 const previewButtonsContainer = document.getElementById("previewButtonsContainer");
-
 const buttonsContainer = document.getElementById("buttonsContainer");
 const addButton = document.getElementById("addButton");
 const buttonCountInput = document.getElementById("buttonCount");
 
-function getButtonColor(style) {
-  if (style === "Primary") return "#5865f2";
-  if (style === "Secondary") return "#4e5058";
-  if (style === "Danger") return "#ed4245";
-  return "#23a559";
-}
-
+function getButtonColor(style) { if (style === "Primary") return "#5865f2"; if (style === "Secondary") return "#4e5058"; if (style === "Danger") return "#ed4245"; return "#23a559"; }
 function updatePreview() {
   previewTitle.innerText = panelName.value || "Sistema de Tickets";
   previewText.innerText = panelMessage.value || "Abrí un ticket con los botones.";
   welcomePreview.innerText = welcomeMessage.value || "Hola {user}, un miembro del staff te atenderá pronto.";
-
   const selectedColor = document.querySelector("input[name='ticketEmbedColor']:checked");
-
-  if (selectedColor) {
-    previewEmbed.style.borderLeftColor = selectedColor.value;
-    previewTicketEmbed.style.borderLeftColor = selectedColor.value;
-  }
-
+  if (selectedColor) { previewEmbed.style.borderLeftColor = selectedColor.value; previewTicketEmbed.style.borderLeftColor = selectedColor.value; }
   previewButtonsContainer.innerHTML = "";
-
   document.querySelectorAll(".button-config-card").forEach(card => {
     const label = card.querySelector('input[name^="buttonLabel_"]')?.value || "Ticket";
     const emoji = card.querySelector('input[name^="buttonEmoji_"]')?.value || "🎫";
     const style = card.querySelector('select[name^="buttonStyle_"]')?.value || "Success";
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "discord-btn";
-    btn.innerText = `${emoji} ${label}`;
-    btn.style.background = getButtonColor(style);
-
-    previewButtonsContainer.appendChild(btn);
+    const btn = document.createElement("button"); btn.type = "button"; btn.className = "discord-btn"; btn.innerText = `${emoji} ${label}`; btn.style.background = getButtonColor(style); previewButtonsContainer.appendChild(btn);
   });
 }
-
 function refreshButtonNumbers() {
   const cards = buttonsContainer.querySelectorAll(".button-config-card");
-
-  cards.forEach((card, index) => {
-    const i = index + 1;
-    card.querySelector("h3").innerText = `Botón ${i}`;
-
-    card.querySelectorAll("input, textarea, select").forEach(input => {
-      if (input.name) {
-        input.name = input.name.replace(/_\d+$/, `_${i}`);
-      }
-    });
-  });
-
-  buttonCountInput.value = cards.length;
-  updatePreview();
+  cards.forEach((card, index) => { const i = index + 1; card.querySelector("h3").innerText = `Botón ${i}`; card.querySelectorAll("input, textarea, select").forEach(input => { if (input.name) input.name = input.name.replace(/_\d+$/, `_${i}`); }); });
+  buttonCountInput.value = cards.length; updatePreview();
 }
-
-function bindCardEvents(card) {
-  card.querySelectorAll("input, textarea, select").forEach(input => {
-    input.addEventListener("input", updatePreview);
-    input.addEventListener("change", updatePreview);
-  });
-}
-
+function bindCardEvents(card) { card.querySelectorAll("input, textarea, select").forEach(input => { input.addEventListener("input", updatePreview); input.addEventListener("change", updatePreview); }); }
 buttonsContainer.querySelectorAll(".button-config-card").forEach(bindCardEvents);
-
 addButton.addEventListener("click", () => {
   const current = buttonsContainer.querySelectorAll(".button-config-card").length;
-
-  if (current >= 10) {
-    alert("Máximo 10 botones.");
-    return;
-  }
-
+  if (current >= 10) { alert("Máximo 10 botones."); return; }
   const i = current + 1;
-
-  const card = document.createElement("div");
-  card.className = "button-config-card";
-
-  card.innerHTML = `
-    <h3>Botón ${i}</h3>
-
-    <label>Texto del botón</label>
-    <input class="input" name="buttonLabel_${i}" value="Ticket ${i}">
-
-    <label>Emoji</label>
-    <input class="input" name="buttonEmoji_${i}" value="🎫">
-
-    <label>Color del botón</label>
-    <select class="input" name="buttonStyle_${i}">
-      <option value="Success">Verde</option>
-      <option value="Primary">Azul</option>
-      <option value="Secondary">Gris</option>
-      <option value="Danger">Rojo</option>
-    </select>
-
-    <button type="button" class="btn red remove-button">🗑️ Eliminar botón</button>
-  `;
-
-  buttonsContainer.appendChild(card);
-  bindCardEvents(card);
-  refreshButtonNumbers();
+  const card = document.createElement("div"); card.className = "button-config-card";
+  card.innerHTML = `<div class="button-card-head"><h3>Botón ${i}</h3><button type="button" class="icon-remove remove-button">✕</button></div><label>Texto del botón</label><input class="input" name="buttonLabel_${i}" value="Ticket ${i}"><div class="two-grid tight"><div><label>Emoji</label><input class="input" name="buttonEmoji_${i}" value="🎫"></div><div><label>Color</label><select class="input" name="buttonStyle_${i}"><option value="Success">Verde</option><option value="Primary">Azul</option><option value="Secondary">Gris</option><option value="Danger">Rojo</option></select></div></div>`;
+  buttonsContainer.appendChild(card); bindCardEvents(card); refreshButtonNumbers();
 });
-
-buttonsContainer.addEventListener("click", e => {
-  if (e.target.classList.contains("remove-button")) {
-    const cards = buttonsContainer.querySelectorAll(".button-config-card");
-
-    if (cards.length <= 1) {
-      alert("Debe quedar al menos 1 botón.");
-      return;
-    }
-
-    e.target.closest(".button-config-card").remove();
-    refreshButtonNumbers();
-  }
-});
-
-panelName.addEventListener("input", updatePreview);
-panelMessage.addEventListener("input", updatePreview);
-welcomeMessage.addEventListener("input", updatePreview);
-
-document.querySelectorAll("input[name='ticketEmbedColor']").forEach(input => {
-  input.addEventListener("change", updatePreview);
-});
-
-refreshButtonNumbers();
-updatePreview();
+buttonsContainer.addEventListener("click", e => { if (e.target.classList.contains("remove-button")) { const cards = buttonsContainer.querySelectorAll(".button-config-card"); if (cards.length <= 1) { alert("Debe quedar al menos 1 botón."); return; } e.target.closest(".button-config-card").remove(); refreshButtonNumbers(); } });
+panelName.addEventListener("input", updatePreview); panelMessage.addEventListener("input", updatePreview); welcomeMessage.addEventListener("input", updatePreview); document.querySelectorAll("input[name='ticketEmbedColor']").forEach(input => input.addEventListener("change", updatePreview));
+refreshButtonNumbers(); updatePreview();
 </script>
-
 </body>
 </html>
