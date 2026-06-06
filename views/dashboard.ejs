@@ -27,7 +27,42 @@
   </aside>
 
   <main class="main">
+    <div class="page-header">
+  <div class="page-title">
     <h1>🎫 Ticketing › <%= guild.name %></h1>
+    <p>Configurá tu sistema de tickets, botones, mensajes y vista previa en tiempo real.</p>
+  </div>
+<div class="header-badge">
+  <span class="status-dot"></span>
+  Sistema Online
+</div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">🎫</div>
+    <span>Sistema</span>
+    <strong>Tickets</strong>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">👥</div>
+    <span>Servidor</span>
+    <strong><%= guild.name %></strong>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">⚙️</div>
+    <span>Estado</span>
+    <strong>Configurado</strong>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon">🚀</div>
+    <span>Bot</span>
+    <strong>Online</strong>
+  </div>
+</div>
 
     <form id="ticketForm" method="POST" action="/dashboard/<%= guild.id %>/tickets">
       <div class="dashboard-grid">
