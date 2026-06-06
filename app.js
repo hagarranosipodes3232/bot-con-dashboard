@@ -370,7 +370,7 @@ client.on("interactionCreate", async interaction => {
             { label: "Otros", emoji: "📩", style: "Primary", welcomeMessage: "" }
           ];
 
-      const selectedButton = enabledButtons[buttonIndex];
+      console.log("BOTONES GUARDADOS:", config.ticketButtons);
 
       const existing = interaction.guild.channels.cache.find(ch =>
         ch.topic &&
@@ -428,6 +428,9 @@ client.on("interactionCreate", async interaction => {
         topic: `owner=${interaction.user.id};status=open;claimed=none`,
         permissionOverwrites: overwrites
       });
+
+console.log("BOTON SELECCIONADO:", selectedButton);
+console.log("MENSAJE DEL BOTON:", selectedButton?.welcomeMessage);
 
       const welcomeRaw =
         selectedButton?.welcomeMessage ||
