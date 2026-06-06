@@ -202,6 +202,7 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
 console.log(req.body);
   const guildId = req.params.guildId;
   const guild = client.guilds.cache.get(guildId);
+  const config = await saveTicketConfig(guildId, req.body, true);
   if (!guild) return res.send("❌ El bot no está en este servidor.");
 
   const channel = guild.channels.cache.get(req.body.ticketPanelChannelId);
@@ -221,42 +222,17 @@ console.log(req.body);
     Success: ButtonStyle.Success,
     Danger: ButtonStyle.Danger
   };
-const row = new ActionRowBuilder().addComponents(
-  new ButtonBuilder()
-    .setCustomId("open_ticket_1")
-    .setLabel("Consultas")
-    .setEmoji("❓")
-    .setStyle(ButtonStyle.Primary),
+const row = new ActionRowBuilder();
 
-  new ButtonBuilder()
-    .setCustomId("open_ticket_2")
-    .setLabel("Soporte")
-    .setEmoji("🛠️")
-    .setStyle(ButtonStyle.Success),
-
-  new ButtonBuilder()
-    .setCustomId("open_ticket_3")
-    .setLabel("Compras")
-    .setEmoji("🛒")
-    .setStyle(ButtonStyle.Secondary),
-
-  new ButtonBuilder()
-    .setCustomId("open_ticket_4")
-    .setLabel("Reportes")
-    .setEmoji("🚨")
-    .setStyle(ButtonStyle.Danger),
-
-  new ButtonBuilder()
-    .setCustomId("open_ticket_5")
-    .setLabel("Otros")
-    .setEmoji("📩")
-    .setStyle(ButtonStyle.Primary)
-);
-   await channel.send({
-  embeds: [embed],
- components: [row]
+(config.ticketButtons || []).slice(0, 5).forEach((btn, index) => {
+  row.addComponents(
+    new ButtonBuilder()
+      .setCustomId(`open_ticket_${index}`)
+      .setLabel(btn.label || `Ticket ${index + 1}`)
+      .setEmoji(btn.emoji || "🎫")
+      .setStyle(styleMap[btn.style] || ButtonStyle.Success)
+  );
 });
-
 return res.redirect(`/dashboard/${guildId}/tickets`);
 });
 app.get("/invite", (req, res) => {
@@ -312,7 +288,7 @@ const enabledButtons = (config.ticketButtons || []).filter(btn => btn.enabled);
 
 const selectedButton = enabledButtons[buttonIndex];
 
-      if (!config || !config.ticketsEnabled) {
+     if (!config) {
         return interaction.reply({
           content: "❌ El sistema de tickets no está configurado.",
           ephemeral: true
