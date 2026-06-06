@@ -162,9 +162,7 @@ async function saveTicketConfig(guildId, body, forceEnabled = false) {
       });
     }
   }
-
-  return GuildConfig.findOneAndUpdate(
-  return GuildConfig.findOneAndUpdate(
+   return GuildConfig.findOneAndUpdate(
     { guildId },
     {
       ticketsEnabled: forceEnabled ? true : body.ticketsEnabled === "on",
