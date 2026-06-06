@@ -227,20 +227,37 @@ console.log(config.ticketButtons);
     Success: ButtonStyle.Success,
     Danger: ButtonStyle.Danger
   };
-let enabledButtons = (realConfig.ticketButtons || []).filter(btn => btn.enabled);
+const row = new ActionRowBuilder().addComponents(
+  new ButtonBuilder()
+    .setCustomId("open_ticket_1")
+    .setLabel("Consultas")
+    .setEmoji("❓")
+    .setStyle(ButtonStyle.Primary),
 
-if (enabledButtons.length === 0) {
-    enabledButtons = [{
-        enabled: true,
-        label: "Abrir Ticket",
-        emoji: "🎫",
-        style: "Success",
-        welcomeMessage: ""
-    }];
-}
-  const rows = [];
+  new ButtonBuilder()
+    .setCustomId("open_ticket_2")
+    .setLabel("Soporte")
+    .setEmoji("🛠️")
+    .setStyle(ButtonStyle.Success),
 
-  for (let i = 0; i < enabledButtons.length; i += 5) {
+  new ButtonBuilder()
+    .setCustomId("open_ticket_3")
+    .setLabel("Compras")
+    .setEmoji("🛒")
+    .setStyle(ButtonStyle.Secondary),
+
+  new ButtonBuilder()
+    .setCustomId("open_ticket_4")
+    .setLabel("Reportes")
+    .setEmoji("🚨")
+    .setStyle(ButtonStyle.Danger),
+
+  new ButtonBuilder()
+    .setCustomId("open_ticket_5")
+    .setLabel("Otros")
+    .setEmoji("📩")
+    .setStyle(ButtonStyle.Primary)
+);
     const row = new ActionRowBuilder();
 
     enabledButtons.slice(i, i + 5).forEach((btn, index) => {
@@ -259,7 +276,7 @@ if (enabledButtons.length === 0) {
   }
 await channel.send({
   embeds: [embed],
-  components: rows
+ components: [row]
 });
 
 return res.redirect(`/dashboard/${guildId}/tickets`);
