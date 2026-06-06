@@ -225,11 +225,11 @@ async function saveTicketConfig(guildId, body, forceEnabled = false) {
       supportRoleId: body.supportRoleId || "",
       ticketNamePattern: body.ticketNamePattern || "ticket-{user.username}",
       ticketLimit: Number(body.ticketLimit || 1),
-      ticketPanelMessage:
-        body.ticketPanelMessage && body.ticketPanelMessage.trim() !== ""
-          ? body.ticketPanelMessage
-          : "Usá el botón de abajo para abrir un ticket.",
-      ticketEmbedColor: body.ticketEmbedColor || "#23a559",
+ticketWelcomeMessage:
+  body.ticketWelcomeMessage && body.ticketWelcomeMessage.trim() !== ""
+    ? body.ticketWelcomeMessage
+    : "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.",
+           ticketEmbedColor: body.ticketEmbedColor || "#23a559",
       ticketButtons
     },
     { upsert: true, new: true, returnDocument: "after" }
@@ -275,27 +275,29 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
       Danger: ButtonStyle.Danger
     };
 
-    const buttons = (config.ticketButtons || []).slice(0, 10);
-    const rows = [];
+   let buttons = (config.ticketButtons || []).filter(btn => btn.enabled !== false).slice(0, 10);
 
-    for (let i = 0; i < buttons.length; i += 5) {
-      const row = new ActionRowBuilder();
-
-      buttons.slice(i, i + 5).forEach((btn, index) => {
-        const realIndex = i + index;
-
-        row.addComponents(
-          new ButtonBuilder()
-            .setCustomId(`open_ticket_${realIndex}`)
-            .setLabel(btn.label || `Ticket ${realIndex + 1}`)
-            .setEmoji(btn.emoji || "🎫")
-            .setStyle(styleMap[btn.style] || ButtonStyle.Success)
-        );
-      });
-
-      rows.push(row);
+if (buttons.length === 0) {
+  buttons = [
+    {
+      label: "Dudas",
+      emoji: "❓",
+      style: "Success"
+    },
+    {
+      label: "Ayuda",
+      emoji: "🛠️",
+      style: "Primary"
+    },
+    {
+      label: "Reportar Miembro",
+      emoji: "🚨",
+      style: "Danger"
     }
+  ];
+}
 
+const rows = [];
     await channel.send({
       embeds: [embed],
       components: rows
@@ -441,10 +443,9 @@ client.on("interactionCreate", async interaction => {
         permissionOverwrites: overwrites
       });
 
-      const welcomeRaw =
-        selectedButton?.welcomeMessage && selectedButton.welcomeMessage.trim() !== ""
-          ? selectedButton.welcomeMessage
-          : "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
+     const welcomeRaw =
+  config.ticketWelcomeMessage ||
+  "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
 
       const welcomeMessage = replaceVars(
         welcomeRaw,
