@@ -66,6 +66,36 @@ const guildConfigSchema = new mongoose.Schema({
     type: String,
     default: "#23a559"
   }
+,
+
+ticketButtonLabel: {
+  type: String,
+  default: "Abrir Ticket"
+},
+
+ticketButtonEmoji: {
+  type: String,
+  default: "🎫"
+},
+
+ticketButtonStyle: {
+  type: String,
+  default: "Success"
+}
+,
+
+ticketButtons: {
+  type: [
+    {
+      enabled: { type: Boolean, default: false },
+      label: { type: String, default: "Abrir Ticket" },
+      emoji: { type: String, default: "🎫" },
+      style: { type: String, default: "Success" },
+      welcomeMessage: { type: String, default: "" }
+    }
+  ],
+  default: []
+}
 }, {
   timestamps: true
 });

@@ -125,6 +125,7 @@ app.get("/servers", async (req, res) => {
     res.send("❌ Error cargando servidores.");
   }
 });
+
 app.get("/dashboard/:guildId/tickets", async (req, res) => {
   res.redirect(`/dashboard/${req.params.guildId}`);
 });
@@ -176,7 +177,6 @@ app.get("/dashboard/:guildId", async (req, res) => {
     roles
   });
 });
-
 function buildTicketButtonsFromBody(body) {
   const ticketButtons = [];
 
@@ -225,11 +225,18 @@ async function saveTicketConfig(guildId, body, forceEnabled = false) {
       supportRoleId: body.supportRoleId || "",
       ticketNamePattern: body.ticketNamePattern || "ticket-{user.username}",
       ticketLimit: Number(body.ticketLimit || 1),
-ticketWelcomeMessage:
-  body.ticketWelcomeMessage && body.ticketWelcomeMessage.trim() !== ""
-    ? body.ticketWelcomeMessage
-    : "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.",
-           ticketEmbedColor: body.ticketEmbedColor || "#23a559",
+
+      ticketWelcomeMessage:
+        body.ticketWelcomeMessage && body.ticketWelcomeMessage.trim() !== ""
+          ? body.ticketWelcomeMessage
+          : "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.",
+
+      ticketPanelMessage:
+        body.ticketPanelMessage && body.ticketPanelMessage.trim() !== ""
+          ? body.ticketPanelMessage
+          : "Abrí un ticket con los botones.",
+
+      ticketEmbedColor: body.ticketEmbedColor || "#23a559",
       ticketButtons
     },
     { upsert: true, new: true, returnDocument: "after" }
@@ -240,6 +247,7 @@ app.post("/dashboard/:guildId/tickets", async (req, res) => {
   await saveTicketConfig(req.params.guildId, req.body, false);
   res.redirect(`/dashboard/${req.params.guildId}`);
 });
+
 app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
   try {
     const guildId = req.params.guildId;
@@ -274,34 +282,39 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
       Success: ButtonStyle.Success,
       Danger: ButtonStyle.Danger
     };
-let buttons = (config.ticketButtons || [])
-  .filter(btn => btn.enabled !== false)
-  .slice(0, 10);
 
-const rows = [];
+    const buttons = (config.ticketButtons || [])
+      .filter(btn => btn.enabled !== false)
+      .slice(0, 10);
 
-for (let i = 0; i < buttons.length; i += 5) {
-  const row = new ActionRowBuilder();
+    const rows = [];
 
-  buttons.slice(i, i + 5).forEach((btn, index) => {
-    const realIndex = i + index;
+    for (let i = 0; i < buttons.length; i += 5) {
+      const row = new ActionRowBuilder();
 
-    row.addComponents(
-      new ButtonBuilder()
-        .setCustomId(`open_ticket_${realIndex}`)
-        .setLabel(btn.label || `Ticket ${realIndex + 1}`)
-        .setEmoji(btn.emoji || "🎫")
-        .setStyle(styleMap[btn.style] || ButtonStyle.Success)
-    );
-  });
+      buttons.slice(i, i + 5).forEach((btn, index) => {
+        const realIndex = i + index;
 
-  rows.push(row);
-}
+        row.addComponents(
+          new ButtonBuilder()
+            .setCustomId(`open_ticket_${realIndex}`)
+            .setLabel(btn.label || `Ticket ${realIndex + 1}`)
+            .setEmoji(btn.emoji || "🎫")
+            .setStyle(styleMap[btn.style] || ButtonStyle.Success)
+        );
+      });
 
-await channel.send({
-  embeds: [embed],
-  components: rows
-});
+      rows.push(row);
+    }
+
+    console.log("BOTONES GUARDADOS:", buttons);
+    console.log("ROWS CREADAS:", rows.length);
+
+    await channel.send({
+      embeds: [embed],
+      components: rows
+    });
+
     return res.redirect(`/dashboard/${guildId}/tickets`);
   } catch (error) {
     console.log("❌ Error enviando panel:", error);
@@ -318,7 +331,6 @@ app.get("/invite", (req, res) => {
 
   res.redirect(url);
 });
-
 function parseTopic(topic = "") {
   const data = {};
 
@@ -350,6 +362,7 @@ async function sendLog(guild, config, embed, files = []) {
     files
   }).catch(() => {});
 }
+
 client.on("interactionCreate", async interaction => {
   try {
     if (
@@ -442,9 +455,10 @@ client.on("interactionCreate", async interaction => {
         permissionOverwrites: overwrites
       });
 
-     const welcomeRaw =
-  config.ticketWelcomeMessage ||
-  "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
+      const welcomeRaw =
+        selectedButton?.welcomeMessage ||
+        config.ticketWelcomeMessage ||
+        "Hola {user}, gracias por abrir un ticket. Un miembro del staff te atenderá pronto.";
 
       const welcomeMessage = replaceVars(
         welcomeRaw,
@@ -586,7 +600,6 @@ client.on("interactionCreate", async interaction => {
 
       return interaction.showModal(modal);
     }
-
     if (
       interaction.isModalSubmit() &&
       interaction.customId === "close_ticket_modal"
