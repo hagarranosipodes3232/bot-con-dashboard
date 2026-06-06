@@ -147,13 +147,18 @@ app.get("/dashboard/:guildId", async (req, res) => {
 async function saveTicketConfig(guildId, body, forceEnabled = false) {
   const ticketButtons = [];
 for (let i = 1; i <= 20; i++) {
-  if (body[`buttonEnabled_${i}`] === "on") {
+  const label = body[`buttonLabel_${i}`];
+  const emoji = body[`buttonEmoji_${i}`];
+  const style = body[`buttonStyle_${i}`];
+  const welcomeMessage = body[`buttonWelcome_${i}`];
+
+  if (label || emoji || style || welcomeMessage) {
     ticketButtons.push({
       enabled: true,
-      label: body[`buttonLabel_${i}`] || `Ticket ${i}`,
-      emoji: body[`buttonEmoji_${i}`] || "🎫",
-      style: body[`buttonStyle_${i}`] || "Success",
-      welcomeMessage: body[`buttonWelcome_${i}`] || ""
+      label: label || `Ticket ${i}`,
+      emoji: emoji || "🎫",
+      style: style || "Success",
+      welcomeMessage: welcomeMessage || ""
     });
   }
 }
