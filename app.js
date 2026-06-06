@@ -296,12 +296,28 @@ if (buttons.length === 0) {
     }
   ];
 }
-
 const rows = [];
 
-  console.log("BOTONES GUARDADOS:", buttons);
-console.log("ROWS CREADAS:", rows.length);
+for (let i = 0; i < buttons.length; i += 5) {
+  const row = new ActionRowBuilder();
 
+  buttons.slice(i, i + 5).forEach((btn, index) => {
+    const realIndex = i + index;
+
+    row.addComponents(
+      new ButtonBuilder()
+        .setCustomId(`open_ticket_${realIndex}`)
+        .setLabel(btn.label || `Ticket ${realIndex + 1}`)
+        .setEmoji(btn.emoji || "🎫")
+        .setStyle(styleMap[btn.style] || ButtonStyle.Success)
+    );
+  });
+
+  rows.push(row);
+}
+
+console.log("BOTONES GUARDADOS:", buttons);
+console.log("ROWS CREADAS:", rows.length);
 await channel.send({
   embeds: [embed],
   components: rows
