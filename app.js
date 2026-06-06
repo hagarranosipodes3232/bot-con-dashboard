@@ -144,20 +144,26 @@ app.get("/dashboard/:guildId", async (req, res) => {
     roles
   });
 });
-
 async function saveTicketConfig(guildId, body, forceEnabled = false) {
-for (let i = 1; i <= 20; i++) {
-  if (body[`buttonLabel_${i}`] || body[`buttonEmoji_${i}`] || body[`buttonWelcome_${i}`]) {
-    ticketButtons.push({
-      enabled: true,
-      label: body[`buttonLabel_${i}`] || `Ticket ${i}`,
-      emoji: body[`buttonEmoji_${i}`] || "🎫",
-      style: body[`buttonStyle_${i}`] || "Success",
-      welcomeMessage: body[`buttonWelcome_${i}`] || ""
-    });
-  }
-}
   const ticketButtons = [];
+
+  for (let i = 1; i <= 20; i++) {
+    if (
+      body[`buttonLabel_${i}`] ||
+      body[`buttonEmoji_${i}`] ||
+      body[`buttonWelcome_${i}`]
+    ) {
+      ticketButtons.push({
+        enabled: true,
+        label: body[`buttonLabel_${i}`] || `Ticket ${i}`,
+        emoji: body[`buttonEmoji_${i}`] || "🎫",
+        style: body[`buttonStyle_${i}`] || "Success",
+        welcomeMessage: body[`buttonWelcome_${i}`] || ""
+      });
+    }
+  }
+
+  return GuildConfig.findOneAndUpdate(
   return GuildConfig.findOneAndUpdate(
     { guildId },
     {
