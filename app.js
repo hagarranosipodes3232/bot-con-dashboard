@@ -274,28 +274,10 @@ app.post("/dashboard/:guildId/tickets/send-panel", async (req, res) => {
       Success: ButtonStyle.Success,
       Danger: ButtonStyle.Danger
     };
+let buttons = (config.ticketButtons || [])
+  .filter(btn => btn.enabled !== false)
+  .slice(0, 10);
 
-   let buttons = (config.ticketButtons || []).filter(btn => btn.enabled !== false).slice(0, 10);
-
-if (buttons.length === 0) {
-  buttons = [
-    {
-      label: "Dudas",
-      emoji: "❓",
-      style: "Success"
-    },
-    {
-      label: "Ayuda",
-      emoji: "🛠️",
-      style: "Primary"
-    },
-    {
-      label: "Reportar Miembro",
-      emoji: "🚨",
-      style: "Danger"
-    }
-  ];
-}
 const rows = [];
 
 for (let i = 0; i < buttons.length; i += 5) {
@@ -316,8 +298,6 @@ for (let i = 0; i < buttons.length; i += 5) {
   rows.push(row);
 }
 
-console.log("BOTONES GUARDADOS:", buttons);
-console.log("ROWS CREADAS:", rows.length);
 await channel.send({
   embeds: [embed],
   components: rows
