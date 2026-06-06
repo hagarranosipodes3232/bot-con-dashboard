@@ -298,11 +298,14 @@ if (buttons.length === 0) {
 }
 
 const rows = [];
-    await channel.send({
-      embeds: [embed],
-      components: rows
-    });
 
+  console.log("BOTONES GUARDADOS:", buttons);
+console.log("ROWS CREADAS:", rows.length);
+
+await channel.send({
+  embeds: [embed],
+  components: rows
+});
     return res.redirect(`/dashboard/${guildId}/tickets`);
   } catch (error) {
     console.log("❌ Error enviando panel:", error);
