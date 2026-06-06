@@ -575,3 +575,30 @@ button:hover {
 .preview-box::-webkit-scrollbar-track {
   background: rgba(255,255,255,.04);
 }
+.button-editor-inline {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+.button-editor-inline h2 {
+  margin-bottom: 8px;
+}
+
+.muted-text {
+  color: #94a3b8;
+  margin-bottom: 16px;
+}
+
+.button-config-card {
+  background: rgba(255,255,255,.035);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 18px;
+}
+
+.button-config-card h3 {
+  color: white;
+  margin-bottom: 14px;
+}
