@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Configuración</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <div>
+        <div class="logo-title">012 Bot</div>
+        <div class="logo-status"><span class="status-dot"></span> Online</div>
+      </div>
+    </div>
+
+    <div class="menu">
+      <a href="/servers">🏠 Dashboard</a>
+      <a href="/dashboard/<%= guild.id %>/tickets">🎫 Tickets</a>
+      <a href="/dashboard/<%= guild.id %>/verification">🛡️ Verificación</a>
+      <a>📊 Estadísticas</a>
+      <a href="/dashboard/<%= guild.id %>/logs">📜 Logs</a>
+      <a class="active" href="/dashboard/<%= guild.id %>/configuration">⚙️ Configuración</a>
+      <a>👑 Premium</a>
+    </div>
+
+    <div class="sidebar-footer">
+      <span>Servidor actual</span>
+      <strong><%= guild.name %></strong>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="page-header">
+      <div class="page-title">
+        <h1>⚙️ Configuración General</h1>
+        <p>Centro de control visual para administrar el bot en <b><%= guild.name %></b>.</p>
+      </div>
+
+      <div class="header-badge">
+        <span class="status-dot"></span>
+        Configuración activa
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">🤖</div>
+        <span>Bot</span>
+        <strong>Online</strong>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">🎫</div>
+        <span>Tickets</span>
+        <strong><%= config.ticketsEnabled ? "Activo" : "Configurable" %></strong>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">🛡️</div>
+        <span>Verificación</span>
+        <strong><%= config.verificationEnabled ? "Activa" : "Configurable" %></strong>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">📜</div>
+        <span>Logs</span>
+        <strong>Disponible</strong>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+
+      <section>
+        <div class="card">
+          <h2>🤖 Bot</h2>
+          <p class="muted-text">Configuración general del bot.</p>
+
+          <label>Nombre visual</label>
+          <input class="input" value="012 Bot" disabled>
+
+          <label>Estado</label>
+          <input class="input" value="Online" disabled>
+
+          <label>Actividad</label>
+          <input class="input" value="Gestionando tickets y verificaciones" disabled>
+        </div>
+
+        <div class="card">
+          <h2>🎫 Tickets</h2>
+          <p class="muted-text">Accesos rápidos al sistema de tickets.</p>
+
+          <div class="actions">
+            <a class="btn" href="/dashboard/<%= guild.id %>/tickets">🎫 Editar tickets</a>
+            <a class="btn gray" href="/dashboard/<%= guild.id %>/logs">📜 Ver logs</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🛡️ Verificación</h2>
+          <p class="muted-text">Accesos rápidos al sistema de verificación.</p>
+
+          <div class="actions">
+            <a class="btn" href="/dashboard/<%= guild.id %>/verification">🛡️ Editar verificación</a>
+          </div>
+        </div>
+      </section>
+
+      <aside class="preview-box">
+        <h2>👀 Vista rápida</h2>
+
+        <div class="discord-preview">
+          <div class="preview-author">
+            🤖 012 Bot <span>APP</span>
+          </div>
+
+          <div class="preview-embed">
+            <h3>⚙️ Panel de configuración</h3>
+            <p>
+Servidor: <%= guild.name %>
+
+Desde acá vas a poder controlar tickets, verificación, logs, apariencia, seguridad y opciones premium.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🚀 Próximas mejoras</h2>
+          <p class="muted-text">Apariencia, seguridad, backup, estadísticas y premium.</p>
+        </div>
+      </aside>
+
+    </div>
+
+  </main>
+</div>
+</body>
+</html>
