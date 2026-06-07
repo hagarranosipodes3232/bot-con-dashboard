@@ -92,17 +92,20 @@
     >
 <label class="switch-row">
   <span>Animaciones activadas</span>
-  <input type="checkbox" name="dashboardAnimations" <%= config.dashboardAnimations ? "checked" : "" %>>
+  <input class="switch-input" type="checkbox" name="dashboardAnimations" <%= config.dashboardAnimations ? "checked" : "" %>>
+  <span class="toggle-slider"></span>
 </label>
 
 <label class="switch-row">
   <span>Fondo con partículas</span>
-  <input type="checkbox" name="dashboardParticles" <%= config.dashboardParticles ? "checked" : "" %>>
+  <input class="switch-input" type="checkbox" name="dashboardParticles" <%= config.dashboardParticles ? "checked" : "" %>>
+  <span class="toggle-slider"></span>
 </label>
 
 <label class="switch-row">
   <span>Efecto glass premium</span>
-  <input type="checkbox" name="dashboardGlass" <%= config.dashboardGlass ? "checked" : "" %>>
+  <input class="switch-input" type="checkbox" name="dashboardGlass" <%= config.dashboardGlass ? "checked" : "" %>>
+  <span class="toggle-slider"></span>
 </label>
        <div class="actions">
       <button class="btn green" type="submit">💾 Guardar apariencia</button>
