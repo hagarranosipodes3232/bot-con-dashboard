@@ -518,46 +518,114 @@ const geo = await axios
   .then(r => r.data)
   .catch(() => null);
 
-    const fields = [];
+   const fields = [];
 
-    fields.push({ name: "👤 Usuario", value: `<@${user.id}>`, inline: true });
-    fields.push({ name: "🆔 ID", value: `\`${user.id}\``, inline: true });
+const createdAt = new Date(Number((BigInt(user.id) >> 22n) + 1420070400000n));
+const accountAgeDays = Math.floor((Date.now() - createdAt.getTime()) / 86400000);
 
-    if (config.verificationShowMaskedIP) {
-      fields.push({ name: "🌐 IP", value: `\`${maskIP(ip)}\``, inline: true });
-    }
+let risk = "🟢 Bajo";
+const alerts = [];
+
+if (accountAgeDays < 7) {
+  risk = "🔴 Alto";
+  alerts.push("Cuenta creada hace menos de 7 días");
+} else if (accountAgeDays < 30) {
+  risk = "🟡 Medio";
+  alerts.push("Cuenta creada hace menos de 30 días");
+}
+
+if (geo?.proxy) alerts.push("Proxy detectado");
+if (geo?.hosting) alerts.push("Hosting detectado");
+
+if (config.verificationShowGlobalName) {
+  fields.push({ name: "👤 Nombre global", value: user.global_name || "No disponible", inline: true });
+}
+
+if (config.verificationShowUsername) {
+  fields.push({ name: "🏷️ Username", value: `@${user.username}`, inline: true });
+}
+
+if (config.verificationShowUserId) {
+  fields.push({ name: "🆔 ID", value: `\`${user.id}\``, inline: true });
+}
+
+if (config.verificationShowAvatarType) {
+  fields.push({
+    name: "🖼️ Avatar",
+    value: user.avatar ? "Personalizado" : "Por defecto",
+    inline: true
+  });
+}
+
+if (config.verificationShowMaskedIP) {
+  fields.push({ name: "🌐 IP", value: `\`${maskIP(ip)}\``, inline: true });
+}
+
 if (geo?.status === "success") {
-  if (config.verificationShowCity) {
-    fields.push({ name: "🏙️ Ciudad aproximada", value: geo.city || "No disponible", inline: true });
-  }
-
-  if (config.verificationShowRegion) {
-    fields.push({ name: "📍 Región aproximada", value: geo.regionName || "No disponible", inline: true });
-  }
-
-  if (config.verificationShowCountry) {
-    fields.push({ name: "🌎 País", value: geo.country || "No disponible", inline: true });
-  }
-
-  if (config.verificationShowISP) {
-    fields.push({ name: "📡 ISP", value: geo.isp || "No disponible", inline: true });
-  }
+  if (config.verificationShowCity) fields.push({ name: "🏙️ Ciudad", value: geo.city || "No disponible", inline: true });
+  if (config.verificationShowRegion) fields.push({ name: "📍 Región", value: geo.regionName || "No disponible", inline: true });
+  if (config.verificationShowCountry) fields.push({ name: "🌎 País", value: geo.country || "No disponible", inline: true });
+  if (config.verificationShowCountryCode) fields.push({ name: "🏳️ Código país", value: geo.countryCode || "No disponible", inline: true });
+  if (config.verificationShowTimezone) fields.push({ name: "🕒 Zona horaria", value: geo.timezone || "No disponible", inline: true });
+  if (config.verificationShowISP) fields.push({ name: "📡 ISP", value: geo.isp || "No disponible", inline: true });
+  if (config.verificationShowASN) fields.push({ name: "🏢 ASN", value: geo.as || "No disponible", inline: true });
 
   if (config.verificationShowVPN) {
-    const vpnText = geo.proxy || geo.hosting ? "Posible VPN/Proxy/Hosting" : "No detectado";
-    fields.push({ name: "🛡️ VPN / Proxy", value: vpnText, inline: true });
+    fields.push({ name: "🛡️ VPN", value: geo.proxy ? "Posible VPN/Proxy" : "No detectado", inline: true });
+  }
+
+  if (config.verificationShowProxy) {
+    fields.push({ name: "🔄 Proxy", value: geo.proxy ? "Detectado" : "No detectado", inline: true });
+  }
+
+  if (config.verificationShowHosting) {
+    fields.push({ name: "🖥️ Hosting", value: geo.hosting ? "Detectado" : "No detectado", inline: true });
+  }
+
+  if (config.verificationShowMobile) {
+    fields.push({ name: "📱 Mobile", value: geo.mobile ? "Sí" : "No / desconocido", inline: true });
   }
 }
 
-    if (config.verificationShowAccountCreated) {
-      const createdAt = new Date(Number((BigInt(user.id) >> 22n) + 1420070400000n));
-      fields.push({
-        name: "📅 Cuenta creada",
-        value: `<t:${Math.floor(createdAt.getTime() / 1000)}:F>`,
-        inline: false
-      });
-    }
+if (config.verificationShowAccountCreated) {
+  fields.push({
+    name: "📅 Cuenta creada",
+    value: `<t:${Math.floor(createdAt.getTime() / 1000)}:F>`,
+    inline: false
+  });
+}
 
+if (config.verificationShowAccountAge) {
+  fields.push({ name: "⏳ Edad de cuenta", value: `${accountAgeDays} días`, inline: true });
+}
+
+if (config.verificationShowNitro) {
+  fields.push({ name: "💎 Nitro", value: user.premium_type ? "Posible Nitro" : "No detectable / No", inline: true });
+}
+
+if (config.verificationShowVerifyDate) {
+  fields.push({ name: "✅ Verificado", value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: false });
+}
+
+if (config.verificationShowRoleGiven) {
+  fields.push({
+    name: "🎖️ Rol entregado",
+    value: config.verificationRoleId ? `<@&${config.verificationRoleId}>` : "No configurado",
+    inline: true
+  });
+}
+
+if (config.verificationShowRisk) {
+  fields.push({ name: "⚠️ Riesgo", value: risk, inline: true });
+}
+
+if (config.verificationShowSecurityAlerts) {
+  fields.push({
+    name: "🛡️ Alertas",
+    value: alerts.length ? alerts.join("\n") : "Sin alertas",
+    inline: false
+  });
+}
     const logEmbed = new EmbedBuilder()
       .setTitle("✅ Usuario verificado")
       .setColor(config.verificationEmbedColor || "#23a559")
