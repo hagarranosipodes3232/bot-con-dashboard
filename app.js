@@ -484,6 +484,10 @@ app.get("/verify/callback", async (req, res) => {
     }
 
     const ip = getClientIP(req);
+const geo = await axios
+  .get(`http://ip-api.com/json/${ip}?fields=status,country,regionName,city,isp,proxy,hosting,query`)
+  .then(r => r.data)
+  .catch(() => null);
 
     const fields = [];
 
@@ -493,6 +497,28 @@ app.get("/verify/callback", async (req, res) => {
     if (config.verificationShowMaskedIP) {
       fields.push({ name: "🌐 IP", value: `\`${maskIP(ip)}\``, inline: true });
     }
+if (geo?.status === "success") {
+  if (config.verificationShowCity) {
+    fields.push({ name: "🏙️ Ciudad aproximada", value: geo.city || "No disponible", inline: true });
+  }
+
+  if (config.verificationShowRegion) {
+    fields.push({ name: "📍 Región aproximada", value: geo.regionName || "No disponible", inline: true });
+  }
+
+  if (config.verificationShowCountry) {
+    fields.push({ name: "🌎 País", value: geo.country || "No disponible", inline: true });
+  }
+
+  if (config.verificationShowISP) {
+    fields.push({ name: "📡 ISP", value: geo.isp || "No disponible", inline: true });
+  }
+
+  if (config.verificationShowVPN) {
+    const vpnText = geo.proxy || geo.hosting ? "Posible VPN/Proxy/Hosting" : "No detectado";
+    fields.push({ name: "🛡️ VPN / Proxy", value: vpnText, inline: true });
+  }
+}
 
     if (config.verificationShowAccountCreated) {
       const createdAt = new Date(Number((BigInt(user.id) >> 22n) + 1420070400000n));
