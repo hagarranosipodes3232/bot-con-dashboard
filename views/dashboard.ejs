@@ -6,7 +6,12 @@
   <title>Tickets Dashboard</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
+<body
+  class="
+  <%= !config.dashboardAnimations ? 'no-animations' : '' %>
+  <%= !config.dashboardParticles ? 'no-particles' : '' %>
+  <%= !config.dashboardGlass ? 'no-glass' : '' %>
+">
 <div class="layout">
   <aside class="sidebar">
     <div class="logo">

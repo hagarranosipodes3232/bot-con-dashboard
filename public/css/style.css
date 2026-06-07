@@ -1639,3 +1639,29 @@ select option:hover {
   background:white;
   transform:translateX(26px);
 }
+/* DESACTIVAR ANIMACIONES */
+
+.no-animations *,
+.no-animations *::before,
+.no-animations *::after{
+  animation:none !important;
+  transition:none !important;
+}
+
+/* DESACTIVAR PARTICULAS */
+
+.no-particles .layout::before,
+.no-particles body::after{
+  display:none !important;
+}
+
+/* DESACTIVAR GLASS */
+
+.no-glass .card,
+.no-glass .preview-box,
+.no-glass .stat-card,
+.no-glass .button-config-card,
+.no-glass .sidebar{
+  backdrop-filter:none !important;
+  background:#0f172a !important;
+}
