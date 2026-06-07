@@ -1361,3 +1361,28 @@ select{
     display:none;
   }
 }
+/* Select oscuro premium */
+select,
+select.input {
+  color-scheme: dark;
+  background-color: #0f172a;
+  color: #ffffff;
+}
+
+select option {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+select option:hover,
+select option:checked {
+  background: #5865f2;
+  color: #ffffff;
+}
+select:focus {
+  background: #111827;
+  border-color: #5865f2;
+  box-shadow:
+    0 0 0 4px rgba(88,101,242,.25),
+    0 0 25px rgba(88,101,242,.35);
+}
