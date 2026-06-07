@@ -1569,36 +1569,35 @@ select option:hover {
 }
 
 .switch-row input{
-  appearance:none;
-  -webkit-appearance:none;
-  width:58px;
-  height:32px;
-  border-radius:999px;
-  background:#0f172a;
-  border:1px solid rgba(148,163,184,.35);
-  position:relative;
-  cursor:pointer;
-  transition:.25s ease;
-  box-shadow:inset 0 0 12px rgba(0,0,0,.55);
+  appearance:none !important;
+  -webkit-appearance:none !important;
+  width:58px !important;
+  height:32px !important;
+  border-radius:999px !important;
+  background:#020617 !important;
+  border:1px solid #334155 !important;
+  position:relative !important;
+  cursor:pointer !important;
 }
+
 .switch-row input::before{
-  content:"";
-  position:absolute;
-  width:22px;
-  height:22px;
-  border-radius:50%;
-  background:white;
-  top:4px;
-  left:4px;
-  transition:.25s ease;
-  box-shadow:0 4px 12px rgba(0,0,0,.35);
+  content:"" !important;
+  position:absolute !important;
+  width:22px !important;
+  height:22px !important;
+  border-radius:50% !important;
+  background:#64748b !important;
+  top:4px !important;
+  left:4px !important;
+  transition:.25s !important;
 }
 
 .switch-row input:checked{
-  background:linear-gradient(135deg,#22c55e,#7c3aed);
-  border-color:#22c55e;
-  box-shadow:0 0 22px rgba(34,197,94,.45);
+  background:linear-gradient(135deg,#22c55e,#7c3aed) !important;
+  border-color:#22c55e !important;
 }
+
 .switch-row input:checked::before{
-  transform:translateX(24px);
+  background:white !important;
+  transform:translateX(26px) !important;
 }
