@@ -81,15 +81,49 @@
           </div>
 
           <div class="card">
-            <h2>🔎 Datos que se mostrarán en logs</h2>
+<h2>🔎 Datos que se mostrarán en logs</h2>
 
-            <label><input type="checkbox" name="verificationShowCity" <%= config.verificationShowCity ? "checked" : "" %>> Ciudad aproximada</label>
-            <label><input type="checkbox" name="verificationShowRegion" <%= config.verificationShowRegion ? "checked" : "" %>> Región aproximada</label>
-            <label><input type="checkbox" name="verificationShowCountry" <%= config.verificationShowCountry ? "checked" : "" %>> País</label>
-            <label><input type="checkbox" name="verificationShowISP" <%= config.verificationShowISP ? "checked" : "" %>> ISP / Proveedor</label>
-            <label><input type="checkbox" name="verificationShowVPN" <%= config.verificationShowVPN ? "checked" : "" %>> VPN / Proxy probable</label>
-            <label><input type="checkbox" name="verificationShowMaskedIP" <%= config.verificationShowMaskedIP ? "checked" : "" %>> IP enmascarada</label>
-            <label><input type="checkbox" name="verificationShowAccountCreated" <%= config.verificationShowAccountCreated ? "checked" : "" %>> Fecha de creación Discord</label>
+<h3>👤 Información de Discord</h3>
+<label><input type="checkbox" name="verificationShowGlobalName" <%= config.verificationShowGlobalName ? "checked" : "" %>> Nombre global de Discord</label>
+<label><input type="checkbox" name="verificationShowUsername" <%= config.verificationShowUsername ? "checked" : "" %>> Username (@usuario)</label>
+<label><input type="checkbox" name="verificationShowUserId" <%= config.verificationShowUserId ? "checked" : "" %>> ID de usuario</label>
+<label><input type="checkbox" name="verificationShowBigAvatar" <%= config.verificationShowBigAvatar ? "checked" : "" %>> Avatar grande</label>
+<label><input type="checkbox" name="verificationShowAccountCreated" <%= config.verificationShowAccountCreated ? "checked" : "" %>> Fecha de creación de la cuenta</label>
+<label><input type="checkbox" name="verificationShowAccountAge" <%= config.verificationShowAccountAge ? "checked" : "" %>> Edad de la cuenta</label>
+<label><input type="checkbox" name="verificationShowNitro" <%= config.verificationShowNitro ? "checked" : "" %>> Tiene Nitro</label>
+<label><input type="checkbox" name="verificationShowAvatarType" <%= config.verificationShowAvatarType ? "checked" : "" %>> Avatar por defecto o personalizado</label>
+
+<h3>🌐 Información de conexión</h3>
+<label><input type="checkbox" name="verificationShowMaskedIP" <%= config.verificationShowMaskedIP ? "checked" : "" %>> IP enmascarada</label>
+<label><input type="checkbox" name="verificationShowCity" <%= config.verificationShowCity ? "checked" : "" %>> Ciudad aproximada</label>
+<label><input type="checkbox" name="verificationShowRegion" <%= config.verificationShowRegion ? "checked" : "" %>> Región / Provincia</label>
+<label><input type="checkbox" name="verificationShowCountry" <%= config.verificationShowCountry ? "checked" : "" %>> País</label>
+<label><input type="checkbox" name="verificationShowCountryCode" <%= config.verificationShowCountryCode ? "checked" : "" %>> Código de país</label>
+<label><input type="checkbox" name="verificationShowTimezone" <%= config.verificationShowTimezone ? "checked" : "" %>> Zona horaria</label>
+<label><input type="checkbox" name="verificationShowISP" <%= config.verificationShowISP ? "checked" : "" %>> ISP / Proveedor</label>
+<label><input type="checkbox" name="verificationShowASN" <%= config.verificationShowASN ? "checked" : "" %>> ASN</label>
+<label><input type="checkbox" name="verificationShowHosting" <%= config.verificationShowHosting ? "checked" : "" %>> Hosting detectado</label>
+<label><input type="checkbox" name="verificationShowVPN" <%= config.verificationShowVPN ? "checked" : "" %>> VPN probable</label>
+<label><input type="checkbox" name="verificationShowProxy" <%= config.verificationShowProxy ? "checked" : "" %>> Proxy probable</label>
+<label><input type="checkbox" name="verificationShowMobile" <%= config.verificationShowMobile ? "checked" : "" %>> Mobile Network</label>
+
+<h3>✅ Información de verificación</h3>
+<label><input type="checkbox" name="verificationShowVerifyDate" <%= config.verificationShowVerifyDate ? "checked" : "" %>> Fecha y hora de verificación</label>
+<label><input type="checkbox" name="verificationShowVerifyDuration" <%= config.verificationShowVerifyDuration ? "checked" : "" %>> Tiempo que tardó en verificarse</label>
+<label><input type="checkbox" name="verificationShowRoleGiven" <%= config.verificationShowRoleGiven ? "checked" : "" %>> Rol entregado</label>
+<label><input type="checkbox" name="verificationShowVerifyChannel" <%= config.verificationShowVerifyChannel ? "checked" : "" %>> Canal donde se verificó</label>
+<label><input type="checkbox" name="verificationShowTotalVerifications" <%= config.verificationShowTotalVerifications ? "checked" : "" %>> Verificaciones totales del servidor</label>
+<label><input type="checkbox" name="verificationShowAttempts" <%= config.verificationShowAttempts ? "checked" : "" %>> Número de intentos</label>
+
+<h3>🛡 Seguridad</h3>
+<label><input type="checkbox" name="verificationShowSecurityAlerts" <%= config.verificationShowSecurityAlerts ? "checked" : "" %>> Alertas de seguridad</label>
+<label><input type="checkbox" name="verificationShowRisk" <%= config.verificationShowRisk ? "checked" : "" %>> Cuenta muy nueva / riesgo</label>
+
+<h3>🎨 Visual</h3>
+<label><input type="checkbox" name="verificationShowUserThumbnail" <%= config.verificationShowUserThumbnail ? "checked" : "" %>> Thumbnail del usuario</label>
+<label><input type="checkbox" name="verificationShowUserBanner" <%= config.verificationShowUserBanner ? "checked" : "" %>> Banner de Discord</label>
+<label><input type="checkbox" name="verificationShowProfileButton" <%= config.verificationShowProfileButton ? "checked" : "" %>> Botón para abrir perfil</label>
+<label><input type="checkbox" name="verificationShowCopyIdButton" <%= config.verificationShowCopyIdButton ? "checked" : "" %>> Botón para copiar ID</label>
           </div>
 
           <div class="actions">

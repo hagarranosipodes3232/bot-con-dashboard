@@ -626,6 +626,7 @@ if (config.verificationShowSecurityAlerts) {
     inline: false
   });
 }
+console.log(config);
     const logEmbed = new EmbedBuilder()
       .setTitle("✅ Usuario verificado")
       .setColor(config.verificationEmbedColor || "#23a559")
