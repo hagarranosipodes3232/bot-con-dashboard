@@ -457,7 +457,7 @@ app.get("/verify/callback", async (req, res) => {
         client_secret: process.env.CLIENT_SECRET,
         grant_type: "authorization_code",
         code,
-        redirect_uri: process.env.BASE_URL + "/verify/callback"
+     redirect_uri: "https://bot-con-dashboard.onrender.com/verify/callback"
       }),
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
@@ -565,7 +565,7 @@ app.get("/verify/:guildId/discord", (req, res) => {
   const url =
     "https://discord.com/oauth2/authorize" +
     `?client_id=${process.env.CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(process.env.BASE_URL + "/verify/callback")}` +
+    `&redirect_uri=${encodeURIComponent("https://bot-con-dashboard.onrender.com/verify/callback")}` +
     "&response_type=code" +
     `&state=${guildId}` +
     "&scope=identify";
