@@ -77,6 +77,41 @@
     <div class="dashboard-grid">
 
       <section>
+<form method="POST" action="/dashboard/<%= guild.id %>/configuration">
+
+  <div class="card">
+    <h2>🎨 Apariencia</h2>
+    <p class="muted-text">Personalizá el estilo visual del dashboard.</p>
+
+    <label>Color principal</label>
+    <input
+      class="input"
+      type="color"
+      name="dashboardThemeColor"
+      value="<%= config.dashboardThemeColor || '#7c3aed' %>"
+    >
+
+    <label>
+      <input type="checkbox" name="dashboardAnimations" <%= config.dashboardAnimations ? "checked" : "" %>>
+      Animaciones activadas
+    </label>
+
+    <label>
+      <input type="checkbox" name="dashboardParticles" <%= config.dashboardParticles ? "checked" : "" %>>
+      Fondo con partículas
+    </label>
+
+    <label>
+      <input type="checkbox" name="dashboardGlass" <%= config.dashboardGlass ? "checked" : "" %>>
+      Efecto glass premium
+    </label>
+
+    <div class="actions">
+      <button class="btn green" type="submit">💾 Guardar apariencia</button>
+    </div>
+  </div>
+
+</form>
         <div class="card">
           <h2>🤖 Bot</h2>
           <p class="muted-text">Configuración general del bot.</p>
