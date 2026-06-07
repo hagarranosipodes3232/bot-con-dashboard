@@ -160,8 +160,132 @@ verificationShowMaskedIP: {
   type: Boolean,
   default: true
 },
-
 verificationShowAccountCreated: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowGlobalName: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowUsername: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowUserId: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowBigAvatar: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowAccountAge: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowNitro: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowAvatarType: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowCountryCode: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowTimezone: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowASN: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowHosting: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowProxy: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowMobile: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowVerifyDate: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowVerifyDuration: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowRoleGiven: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowVerifyChannel: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowTotalVerifications: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowAttempts: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowSecurityAlerts: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowRisk: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowUserThumbnail: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowUserBanner: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowProfileButton: {
+  type: Boolean,
+  default: true
+},
+
+verificationShowCopyIdButton: {
   type: Boolean,
   default: true
 }

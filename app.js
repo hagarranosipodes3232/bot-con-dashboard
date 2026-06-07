@@ -347,7 +347,6 @@ app.get("/dashboard/:guildId/verification", async (req, res) => {
     roles
   });
 });
-
 async function saveVerificationConfig(guildId, body) {
   return GuildConfig.findOneAndUpdate(
     { guildId },
@@ -366,7 +365,37 @@ async function saveVerificationConfig(guildId, body) {
       verificationShowISP: body.verificationShowISP === "on",
       verificationShowVPN: body.verificationShowVPN === "on",
       verificationShowMaskedIP: body.verificationShowMaskedIP === "on",
-      verificationShowAccountCreated: body.verificationShowAccountCreated === "on"
+      verificationShowAccountCreated: body.verificationShowAccountCreated === "on",
+
+      verificationShowGlobalName: body.verificationShowGlobalName === "on",
+      verificationShowUsername: body.verificationShowUsername === "on",
+      verificationShowUserId: body.verificationShowUserId === "on",
+      verificationShowBigAvatar: body.verificationShowBigAvatar === "on",
+      verificationShowAccountAge: body.verificationShowAccountAge === "on",
+      verificationShowNitro: body.verificationShowNitro === "on",
+      verificationShowAvatarType: body.verificationShowAvatarType === "on",
+
+      verificationShowCountryCode: body.verificationShowCountryCode === "on",
+      verificationShowTimezone: body.verificationShowTimezone === "on",
+      verificationShowASN: body.verificationShowASN === "on",
+      verificationShowHosting: body.verificationShowHosting === "on",
+      verificationShowProxy: body.verificationShowProxy === "on",
+      verificationShowMobile: body.verificationShowMobile === "on",
+
+      verificationShowVerifyDate: body.verificationShowVerifyDate === "on",
+      verificationShowVerifyDuration: body.verificationShowVerifyDuration === "on",
+      verificationShowRoleGiven: body.verificationShowRoleGiven === "on",
+      verificationShowVerifyChannel: body.verificationShowVerifyChannel === "on",
+      verificationShowTotalVerifications: body.verificationShowTotalVerifications === "on",
+      verificationShowAttempts: body.verificationShowAttempts === "on",
+
+      verificationShowSecurityAlerts: body.verificationShowSecurityAlerts === "on",
+      verificationShowRisk: body.verificationShowRisk === "on",
+
+      verificationShowUserThumbnail: body.verificationShowUserThumbnail === "on",
+      verificationShowUserBanner: body.verificationShowUserBanner === "on",
+      verificationShowProfileButton: body.verificationShowProfileButton === "on",
+      verificationShowCopyIdButton: body.verificationShowCopyIdButton === "on"
     },
     { upsert: true, new: true, returnDocument: "after" }
   );
