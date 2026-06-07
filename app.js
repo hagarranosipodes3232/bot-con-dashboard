@@ -231,6 +231,7 @@ app.get("/dashboard/:guildId/configuration", async (req, res) => {
   });
 });
 app.post("/dashboard/:guildId/configuration", async (req, res) => {
+console.log(req.body);
   const guildId = req.params.guildId;
 
   await GuildConfig.findOneAndUpdate(
