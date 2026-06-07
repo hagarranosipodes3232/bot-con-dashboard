@@ -217,10 +217,22 @@
    href="/dashboard/<%= guild.id %>/backup/export">
    📥 Exportar backup
 </a>
-<button class="btn gray" type="button" onclick="alert('📤 Importar backup todavía no está programado')">
-  📤 Importar backup
-</button>
+<form method="POST"
+      action="/dashboard/<%= guild.id %>/backup/import"
+      enctype="multipart/form-data"
+      style="display:inline-block;">
 
+  <input type="file"
+         name="backupFile"
+         accept=".json"
+         required
+         class="input"
+         style="margin-bottom:10px;">
+
+  <button class="btn gray" type="submit">
+    📤 Importar backup
+  </button>
+</form>
 <a class="btn red"
    href="/dashboard/<%= guild.id %>/backup/reset"
    onclick="return confirm('¿Restaurar toda la configuración?');">

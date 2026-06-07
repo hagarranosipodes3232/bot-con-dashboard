@@ -4,6 +4,10 @@ const express = require("express");
 const session = require("express-session");
 const axios = require("axios");
 const mongoose = require("mongoose");
+const multer = require("multer");
+const upload = multer({
+  storage: multer.memoryStorage()
+});
 const discordTranscripts = require("discord-html-transcripts");
 
 const GuildConfig = require("./models/GuildConfig");
@@ -239,60 +243,99 @@ app.get("/dashboard/:guildId/backup/reset", async (req, res) => {
 
   res.redirect(`/dashboard/${guildId}/configuration`);
 });
-app.get("/dashboard/:guildId/configuration", async (req, res) => {
-// ==========================
-// BACKUP
-// ==========================
-
-app.get("/dashboard/:guildId/backup/export", async (req, res) => {
+app.post("/dashboard/:guildId/backup/import", upload.single("backupFile"), async (req, res) => {
   try {
     const guildId = req.params.guildId;
 
-    const config = await GuildConfig.findOne({ guildId });
-
-    if (!config) {
-      return res.send("❌ No hay configuración para exportar.");
+    if (!req.file) {
+      return res.send("❌ No subiste ningún archivo.");
     }
 
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=backup-${guildId}.json`
+    const jsonText = req.file.buffer.toString("utf8");
+    const backupData = JSON.parse(jsonText);
+
+    delete backupData._id;
+    delete backupData.__v;
+    delete backupData.createdAt;
+    delete backupData.updatedAt;
+
+    backupData.guildId = guildId;
+
+    await GuildConfig.findOneAndUpdate(
+      { guildId },
+      backupData,
+      { upsert: true, new: true }
     );
 
-    res.setHeader(
-      "Content-Type",
-      "application/json"
-    );
-
-    res.send(JSON.stringify(config, null, 2));
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error exportando backup");
+    res.redirect(`/dashboard/${guildId}/configuration`);
+  } catch (error) {
+    console.log("❌ Error importando backup:", error);
+    res.status(500).send("❌ Error importando backup.");
   }
+});
+app.get("/dashboard/:guildId/backup/export", async (req, res) => {
+  const guildId = req.params.guildId;
+
+  const config = await GuildConfig.findOne({ guildId });
+
+  if (!config) {
+    return res.send("❌ No hay configuración.");
+  }
+
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=backup-${guildId}.json`
+  );
+
+  res.setHeader(
+    "Content-Type",
+    "application/json"
+  );
+
+  res.send(JSON.stringify(config, null, 2));
 });
 
 app.get("/dashboard/:guildId/backup/reset", async (req, res) => {
-  try {
-    const guildId = req.params.guildId;
+  const guildId = req.params.guildId;
 
-    await GuildConfig.findOneAndDelete({ guildId });
+  await GuildConfig.findOneAndDelete({ guildId });
+  await GuildConfig.create({ guildId });
 
-    await GuildConfig.create({
-      guildId
-    });
-
-    res.redirect(
-      `/dashboard/${guildId}/configuration`
-    );
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error restaurando backup");
-  }
+  res.redirect(`/dashboard/${guildId}/configuration`);
 });
 
-console.log("✅ Rutas backup cargadas");
+app.post(
+  "/dashboard/:guildId/backup/import",
+  upload.single("backupFile"),
+  async (req, res) => {
+
+    const guildId = req.params.guildId;
+
+    if (!req.file) {
+      return res.send("❌ No subiste archivo.");
+    }
+
+    const backupData = JSON.parse(
+      req.file.buffer.toString("utf8")
+    );
+
+    delete backupData._id;
+    delete backupData.__v;
+    delete backupData.createdAt;
+    delete backupData.updatedAt;
+
+    backupData.guildId = guildId;
+
+    await GuildConfig.findOneAndUpdate(
+      { guildId },
+      backupData,
+      { upsert: true }
+    );
+
+    res.redirect(`/dashboard/${guildId}/configuration`);
+  }
+);
+app.get("/dashboard/:guildId/configuration", async (req, res) => {
   if (!req.session.access_token) {
     return res.redirect("/login");
   }
