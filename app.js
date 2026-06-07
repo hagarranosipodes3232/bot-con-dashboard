@@ -335,6 +335,29 @@ app.post(
     res.redirect(`/dashboard/${guildId}/configuration`);
   }
 );
+app.get("/dashboard/:guildId/configuration", async (req, res) => {
+  if (!req.session.access_token) {
+    return res.redirect("/login");
+  }
+
+  const guildId = req.params.guildId;
+  const guild = client.guilds.cache.get(guildId);
+
+  if (!guild) {
+    return res.send("❌ El bot no está en este servidor.");
+  }
+
+  let config = await GuildConfig.findOne({ guildId });
+
+  if (!config) {
+    config = await GuildConfig.create({ guildId });
+  }
+
+  res.render("configuration", {
+    guild,
+    config
+  });
+});
 app.post("/dashboard/:guildId/configuration", async (req, res) => {
   const guildId = req.params.guildId;
 
