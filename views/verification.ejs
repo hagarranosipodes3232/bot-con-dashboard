@@ -17,15 +17,28 @@
         <div class="logo-status"><span class="status-dot"></span> Online</div>
       </div>
     </div>
+<div class="menu">
+  <a href="/servers">🏠 Dashboard</a>
 
-    <div class="menu">
-      <a href="/servers">🏠 Inicio</a>
-      <a href="/dashboard/<%= guild.id %>/tickets">🎫 Tickets</a>
-      <a class="active">✅ Verificación</a>
-      <a>📜 Logs</a>
-      <a>⚙️ Configuración</a>
-    </div>
-  </aside>
+  <a href="/dashboard/<%= guild.id %>/tickets">
+    🎫 Tickets
+  </a>
+
+  <a class="active" href="/dashboard/<%= guild.id %>/verification">
+    🛡️ Verificación
+  </a>
+
+  <a>📊 Estadísticas</a>
+
+  <a href="/dashboard/<%= guild.id %>/logs">
+    📜 Logs
+  </a>
+
+  <a>⚙️ Configuración</a>
+
+  <a>👑 Premium</a>
+</div>
+    </aside>
 
   <main class="main">
     <h1>✅ Verificación › <%= guild.name %></h1>
