@@ -335,28 +335,44 @@ app.post(
     res.redirect(`/dashboard/${guildId}/configuration`);
   }
 );
-app.get("/dashboard/:guildId/configuration", async (req, res) => {
-  if (!req.session.access_token) {
-    return res.redirect("/login");
-  }
-
+app.post("/dashboard/:guildId/configuration", async (req, res) => {
   const guildId = req.params.guildId;
-  const guild = client.guilds.cache.get(guildId);
 
-  if (!guild) {
-    return res.send("❌ El bot no está en este servidor.");
-  }
+  const oldConfig = await GuildConfig.findOne({ guildId });
 
-  let config = await GuildConfig.findOne({ guildId });
+  await GuildConfig.findOneAndUpdate(
+    { guildId },
+    {
+      dashboardThemeColor:
+        req.body.dashboardThemeColor ||
+        oldConfig?.dashboardThemeColor ||
+        "#7c3aed",
 
-  if (!config) {
-    config = await GuildConfig.create({ guildId });
-  }
+      dashboardAnimations:
+        req.body.dashboardAnimations === "on",
 
-  res.render("configuration", {
-    guild,
-    config
-  });
+      dashboardParticles:
+        req.body.dashboardParticles === "on",
+
+      dashboardGlass:
+        req.body.dashboardGlass === "on",
+
+      securityAntiVPN:
+        req.body.securityAntiVPN === "on",
+
+      securityAntiProxy:
+        req.body.securityAntiProxy === "on",
+
+      securityAntiNewAccounts:
+        req.body.securityAntiNewAccounts === "on"
+    },
+    {
+      upsert: true,
+      new: true
+    }
+  );
+
+  res.redirect(`/dashboard/${guildId}/configuration`);
 });
 function buildTicketButtonsFromBody(body) {
   const ticketButtons = [];

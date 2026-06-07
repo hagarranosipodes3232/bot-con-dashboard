@@ -289,6 +289,20 @@ verificationShowCopyIdButton: {
   type: Boolean,
   default: true
 },
+securityAntiVPN: {
+  type: Boolean,
+  default: false
+},
+
+securityAntiProxy: {
+  type: Boolean,
+  default: false
+},
+
+securityAntiNewAccounts: {
+  type: Boolean,
+  default: false
+},
 dashboardThemeColor: {
   type: String,
   default: "#7c3aed"
@@ -306,21 +320,6 @@ dashboardParticles: {
 dashboardGlass: {
   type: Boolean,
   default: true
-},
-
-securityAntiVPN: {
-  type: Boolean,
-  default: false
-},
-
-securityAntiProxy: {
-  type: Boolean,
-  default: false
-},
-
-securityAntiNewAccounts: {
-  type: Boolean,
-  default: false
 }
 }, {
   timestamps: true
