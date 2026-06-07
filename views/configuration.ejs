@@ -80,114 +80,179 @@
     </div>
 
     <div class="dashboard-grid">
-
       <section>
-<form method="POST" action="/dashboard/<%= guild.id %>/configuration">
+        <form method="POST" action="/dashboard/<%= guild.id %>/configuration">
+          <div class="card">
+            <h2>🎨 Apariencia</h2>
+            <p class="muted-text">Personalizá el estilo visual del dashboard.</p>
 
-  <div class="card">
-    <h2>🎨 Apariencia</h2>
-    <p class="muted-text">Personalizá el estilo visual del dashboard.</p>
+            <label>Color principal</label>
+            <input
+              class="input"
+              type="color"
+              name="dashboardThemeColor"
+              value="<%= config.dashboardThemeColor || '#7c3aed' %>"
+            >
 
-    <label>Color principal</label>
-    <input
-      class="input"
-      type="color"
-      name="dashboardThemeColor"
-      value="<%= config.dashboardThemeColor || '#7c3aed' %>"
-    >
-<label class="switch-row">
-  <span>Animaciones activadas</span>
-  <input class="switch-input" type="checkbox" name="dashboardAnimations" <%= config.dashboardAnimations ? "checked" : "" %>>
-  <span class="toggle-slider"></span>
-</label>
+            <label class="switch-row">
+              <span>Animaciones activadas</span>
+              <input class="switch-input" type="checkbox" name="dashboardAnimations" <%= config.dashboardAnimations ? "checked" : "" %>>
+              <span class="toggle-slider"></span>
+            </label>
 
-<label class="switch-row">
-  <span>Fondo con partículas</span>
-  <input class="switch-input" type="checkbox" name="dashboardParticles" <%= config.dashboardParticles ? "checked" : "" %>>
-  <span class="toggle-slider"></span>
-</label>
+            <label class="switch-row">
+              <span>Fondo con partículas</span>
+              <input class="switch-input" type="checkbox" name="dashboardParticles" <%= config.dashboardParticles ? "checked" : "" %>>
+              <span class="toggle-slider"></span>
+            </label>
 
-<label class="switch-row">
-  <span>Efecto glass premium</span>
-  <input class="switch-input" type="checkbox" name="dashboardGlass" <%= config.dashboardGlass ? "checked" : "" %>>
-  <span class="toggle-slider"></span>
-</label>
-       <div class="actions">
-      <button class="btn green" type="submit">💾 Guardar apariencia</button>
-    </div>
-  </div>
+            <label class="switch-row">
+              <span>Efecto glass premium</span>
+              <input class="switch-input" type="checkbox" name="dashboardGlass" <%= config.dashboardGlass ? "checked" : "" %>>
+              <span class="toggle-slider"></span>
+            </label>
 
-</form>
-<div class="config-modules-grid">
+            <div class="actions">
+              <button class="btn green" type="submit">💾 Guardar apariencia</button>
+            </div>
+          </div>
+        </form>
 
-  <a class="config-module" href="/dashboard/<%= guild.id %>/tickets">
-    <div class="config-icon">🎫</div>
-    <div>
-      <h3>Tickets</h3>
-      <p>Panel, botones, categorías y mensajes.</p>
-    </div>
-  </a>
+        <div class="config-modules-grid">
 
-  <a class="config-module" href="/dashboard/<%= guild.id %>/verification">
-    <div class="config-icon">🛡️</div>
-    <div>
-      <h3>Verificación</h3>
-      <p>Rol, panel, logs y seguridad.</p>
-    </div>
-  </a>
+          <a class="config-module" href="/dashboard/<%= guild.id %>/tickets">
+            <div class="config-icon">🎫</div>
+            <div>
+              <h3>Tickets</h3>
+              <p>Panel, botones, categorías y mensajes.</p>
+            </div>
+          </a>
 
-  <a class="config-module" href="/dashboard/<%= guild.id %>/logs">
-    <div class="config-icon">📜</div>
-    <div>
-      <h3>Logs</h3>
-      <p>Registro de actividad del servidor.</p>
-    </div>
-  </a>
+          <a class="config-module" href="/dashboard/<%= guild.id %>/verification">
+            <div class="config-icon">🛡️</div>
+            <div>
+              <h3>Verificación</h3>
+              <p>Rol, panel, logs y seguridad.</p>
+            </div>
+          </a>
 
-  <div class="config-module">
-    <div class="config-icon">🔒</div>
-    <div>
-      <h3>Seguridad</h3>
-      <p>Anti VPN, anti proxy y cuentas nuevas.</p>
-    </div>
-  </div>
+          <a class="config-module" href="/dashboard/<%= guild.id %>/logs">
+            <div class="config-icon">📜</div>
+            <div>
+              <h3>Logs</h3>
+              <p>Registro de actividad del servidor.</p>
+            </div>
+          </a>
 
-  <div class="config-module">
-    <div class="config-icon">💾</div>
-    <div>
-      <h3>Backup</h3>
-      <p>Exportar, importar y restaurar configuración.</p>
-    </div>
-  </div>
+          <button type="button" class="config-module" onclick="openConfigSection('security')">
+            <div class="config-icon">🔒</div>
+            <div>
+              <h3>Seguridad</h3>
+              <p>Anti VPN, anti proxy y cuentas nuevas.</p>
+            </div>
+          </button>
 
-  <div class="config-module">
-    <div class="config-icon">📊</div>
-    <div>
-      <h3>Sistema</h3>
-      <p>Estado del bot, ping, uptime y memoria.</p>
-    </div>
-  </div>
+          <button type="button" class="config-module" onclick="openConfigSection('backup')">
+            <div class="config-icon">💾</div>
+            <div>
+              <h3>Backup</h3>
+              <p>Exportar, importar y restaurar configuración.</p>
+            </div>
+          </button>
 
-  <div class="config-module">
-    <div class="config-icon">🤖</div>
-    <div>
-      <h3>Bot</h3>
-      <p>Nombre visual, estado y actividad.</p>
-    </div>
-  </div>
+          <button type="button" class="config-module" onclick="openConfigSection('system')">
+            <div class="config-icon">📊</div>
+            <div>
+              <h3>Sistema</h3>
+              <p>Estado del bot, ping, uptime y memoria.</p>
+            </div>
+          </button>
 
-  <div class="config-module premium">
-    <div class="config-icon">👑</div>
-    <div>
-      <h3>Premium</h3>
-      <p>Funciones exclusivas y mejoras avanzadas.</p>
-    </div>
-  </div>
+          <button type="button" class="config-module" onclick="openConfigSection('bot')">
+            <div class="config-icon">🤖</div>
+            <div>
+              <h3>Bot</h3>
+              <p>Nombre visual, estado y actividad.</p>
+            </div>
+          </button>
 
-</div>
-        <div class="card">
+          <button type="button" class="config-module premium" onclick="openConfigSection('premium')">
+            <div class="config-icon">👑</div>
+            <div>
+              <h3>Premium</h3>
+              <p>Funciones exclusivas y mejoras avanzadas.</p>
+            </div>
+          </button>
+
+        </div>
+        <div id="security" class="config-section card hidden-section">
+          <h2>🔒 Seguridad</h2>
+          <p class="muted-text">Protecciones avanzadas del servidor.</p>
+
+          <label class="switch-row">
+            <span>Anti VPN</span>
+            <input class="switch-input" type="checkbox">
+            <span class="toggle-slider"></span>
+          </label>
+
+          <label class="switch-row">
+            <span>Anti Proxy</span>
+            <input class="switch-input" type="checkbox">
+            <span class="toggle-slider"></span>
+          </label>
+
+          <label class="switch-row">
+            <span>Anti cuentas nuevas</span>
+            <input class="switch-input" type="checkbox">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div id="backup" class="config-section card hidden-section">
+          <h2>💾 Backup</h2>
+          <p class="muted-text">Exportá o restaurá configuraciones.</p>
+
+          <div class="actions">
+            <button class="btn" type="button">📥 Exportar backup</button>
+            <button class="btn gray" type="button">📤 Importar backup</button>
+            <button class="btn red" type="button">♻ Restaurar</button>
+          </div>
+        </div>
+
+        <div id="system" class="config-section card hidden-section">
+          <h2>📊 Sistema</h2>
+          <p class="muted-text">Estado actual del bot.</p>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">🤖</div>
+              <span>Bot</span>
+              <strong>Online</strong>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon">🌐</div>
+              <span>MongoDB</span>
+              <strong>Conectado</strong>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon">⚡</div>
+              <span>Estado</span>
+              <strong>Activo</strong>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon">🛡️</div>
+              <span>Servidor</span>
+              <strong><%= guild.name %></strong>
+            </div>
+          </div>
+        </div>
+
+        <div id="bot" class="config-section card hidden-section">
           <h2>🤖 Bot</h2>
-          <p class="muted-text">Configuración general del bot.</p>
+          <p class="muted-text">Información visual del bot.</p>
 
           <label>Nombre visual</label>
           <input class="input" value="012 Bot" disabled>
@@ -199,22 +264,42 @@
           <input class="input" value="Gestionando tickets y verificaciones" disabled>
         </div>
 
-        <div class="card">
-          <h2>🎫 Tickets</h2>
-          <p class="muted-text">Accesos rápidos al sistema de tickets.</p>
+        <div id="premium" class="config-section card hidden-section">
+          <h2>👑 Premium</h2>
+          <p class="muted-text">Funciones exclusivas del dashboard.</p>
 
-          <div class="actions">
-            <a class="btn" href="/dashboard/<%= guild.id %>/tickets">🎫 Editar tickets</a>
-            <a class="btn gray" href="/dashboard/<%= guild.id %>/logs">📜 Ver logs</a>
-          </div>
-        </div>
+          <div class="config-modules-grid">
+            <div class="config-module premium">
+              <div class="config-icon">⭐</div>
+              <div>
+                <h3>Logs en vivo</h3>
+                <p>Actualización automática sin recargar.</p>
+              </div>
+            </div>
 
-        <div class="card">
-          <h2>🛡️ Verificación</h2>
-          <p class="muted-text">Accesos rápidos al sistema de verificación.</p>
+            <div class="config-module premium">
+              <div class="config-icon">💾</div>
+              <div>
+                <h3>Backups automáticos</h3>
+                <p>Copias de seguridad programadas.</p>
+              </div>
+            </div>
 
-          <div class="actions">
-            <a class="btn" href="/dashboard/<%= guild.id %>/verification">🛡️ Editar verificación</a>
+            <div class="config-module premium">
+              <div class="config-icon">📊</div>
+              <div>
+                <h3>Estadísticas avanzadas</h3>
+                <p>Datos completos del servidor y tickets.</p>
+              </div>
+            </div>
+
+            <div class="config-module premium">
+              <div class="config-icon">🎨</div>
+              <div>
+                <h3>Temas exclusivos</h3>
+                <p>Diseños visuales premium.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -232,20 +317,47 @@
             <p>
 Servidor: <%= guild.name %>
 
-Desde acá vas a poder controlar tickets, verificación, logs, apariencia, seguridad y opciones premium.
+Desde acá vas a poder controlar tickets, verificación, logs, apariencia, seguridad, backup, sistema y premium.
             </p>
           </div>
         </div>
 
         <div class="card">
-          <h2>🚀 Próximas mejoras</h2>
-          <p class="muted-text">Apariencia, seguridad, backup, estadísticas y premium.</p>
+          <h2>🚀 Módulos disponibles</h2>
+          <p class="muted-text">
+            🎫 Tickets<br>
+            🛡️ Verificación<br>
+            📜 Logs<br>
+            🔒 Seguridad<br>
+            💾 Backup<br>
+            📊 Sistema<br>
+            🤖 Bot<br>
+            👑 Premium
+          </p>
         </div>
       </aside>
 
     </div>
-
   </main>
 </div>
+
+<script>
+function openConfigSection(id) {
+  document.querySelectorAll(".config-section").forEach(section => {
+    section.classList.add("hidden-section");
+  });
+
+  const target = document.getElementById(id);
+
+  if (target) {
+    target.classList.remove("hidden-section");
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+}
+</script>
+
 </body>
 </html>

@@ -1773,3 +1773,16 @@ body::after {
     grid-template-columns:1fr;
   }
 }
+.hidden-section{
+  display:none !important;
+}
+
+.config-section{
+  animation:fadeUp .35s ease both;
+}
+
+.config-module{
+  border:none;
+  text-align:left;
+  cursor:pointer;
+}
