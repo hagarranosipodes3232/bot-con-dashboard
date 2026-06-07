@@ -1542,3 +1542,63 @@ select option:hover {
     flex-direction:column;
   }
 }
+.switch-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:16px 18px;
+  margin:14px 0;
+  border-radius:18px;
+  background:rgba(2,6,23,.45);
+  border:1px solid rgba(255,255,255,.08);
+  cursor:pointer;
+  user-select:none;
+  transition:.25s ease;
+}
+
+.switch-row:hover{
+  border-color:rgba(124,58,237,.65);
+  box-shadow:0 0 25px rgba(124,58,237,.18);
+  transform:translateY(-2px);
+}
+
+.switch-row span{
+  color:#e5e7eb;
+  font-weight:800;
+}
+
+.switch-row input{
+  appearance:none;
+  -webkit-appearance:none;
+  width:54px;
+  height:30px;
+  border-radius:999px;
+  background:#334155;
+  position:relative;
+  cursor:pointer;
+  transition:.25s ease;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+}
+
+.switch-row input::before{
+  content:"";
+  position:absolute;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:white;
+  top:4px;
+  left:4px;
+  transition:.25s ease;
+  box-shadow:0 4px 12px rgba(0,0,0,.35);
+}
+
+.switch-row input:checked{
+  background:linear-gradient(135deg,#22c55e,#7c3aed);
+  box-shadow:0 0 22px rgba(124,58,237,.45);
+}
+
+.switch-row input:checked::before{
+  transform:translateX(24px);
+}

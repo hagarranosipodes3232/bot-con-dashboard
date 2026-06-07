@@ -90,23 +90,21 @@
       name="dashboardThemeColor"
       value="<%= config.dashboardThemeColor || '#7c3aed' %>"
     >
+<label class="switch-row">
+  <span>Animaciones activadas</span>
+  <input type="checkbox" name="dashboardAnimations" <%= config.dashboardAnimations ? "checked" : "" %>>
+</label>
 
-    <label>
-      <input type="checkbox" name="dashboardAnimations" <%= config.dashboardAnimations ? "checked" : "" %>>
-      Animaciones activadas
-    </label>
+<label class="switch-row">
+  <span>Fondo con partículas</span>
+  <input type="checkbox" name="dashboardParticles" <%= config.dashboardParticles ? "checked" : "" %>>
+</label>
 
-    <label>
-      <input type="checkbox" name="dashboardParticles" <%= config.dashboardParticles ? "checked" : "" %>>
-      Fondo con partículas
-    </label>
-
-    <label>
-      <input type="checkbox" name="dashboardGlass" <%= config.dashboardGlass ? "checked" : "" %>>
-      Efecto glass premium
-    </label>
-
-    <div class="actions">
+<label class="switch-row">
+  <span>Efecto glass premium</span>
+  <input type="checkbox" name="dashboardGlass" <%= config.dashboardGlass ? "checked" : "" %>>
+</label>
+       <div class="actions">
       <button class="btn green" type="submit">💾 Guardar apariencia</button>
     </div>
   </div>
