@@ -18,8 +18,10 @@
     </div>
     <div class="menu">
       <a href="/servers">🏠 Inicio</a>
-      <a class="active">🎫 Tickets</a>
-      <a>✅ Verificación</a>
+     <a href="/dashboard/<%= guild.id %>/tickets">🎫 Tickets</a>
+     <a href="/dashboard/<%= guild.id %>/verification" onclick="window.location.href=this.href">
+  ✅ Verificación
+</a>
       <a>📜 Logs</a>
       <a>⚙️ Configuración</a>
     </div>
