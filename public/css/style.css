@@ -1673,3 +1673,44 @@ body::after {
   backdrop-filter:none !important;
   -webkit-backdrop-filter:none !important;
 }
+/* APARIENCIA: EFECTOS MÁS NOTORIOS */
+
+.no-animations .card:hover,
+.no-animations .preview-box:hover,
+.no-animations .stat-card:hover,
+.no-animations .button-config-card:hover{
+  transform:none !important;
+  box-shadow:none !important;
+}
+
+.no-animations .logo-icon,
+.no-animations .status-dot,
+.no-animations .stat-icon{
+  animation:none !important;
+}
+
+.no-animations .btn::before,
+.no-animations button::before,
+.no-animations .menu a::before,
+.no-animations .card::after,
+.no-animations .preview-box::after,
+.no-animations .stat-card::after{
+  display:none !important;
+}
+
+.no-glass .card,
+.no-glass .preview-box,
+.no-glass .stat-card,
+.no-glass .sidebar{
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  background:#0f172a !important;
+  box-shadow:none !important;
+}
+
+.no-particles .layout::before,
+.no-particles body::before,
+.no-particles body::after,
+.no-particles .main::before{
+  display:none !important;
+}
