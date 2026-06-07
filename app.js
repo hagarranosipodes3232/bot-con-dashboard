@@ -212,7 +212,87 @@ if (!config) {
     stats
   });
 });
+app.get("/dashboard/:guildId/backup/export", async (req, res) => {
+  const guildId = req.params.guildId;
+
+  const config = await GuildConfig.findOne({ guildId });
+
+  if (!config) {
+    return res.send("❌ No hay configuración para exportar.");
+  }
+
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=backup-${guildId}.json`
+  );
+
+  res.setHeader("Content-Type", "application/json");
+
+  res.send(JSON.stringify(config, null, 2));
+});
+
+app.get("/dashboard/:guildId/backup/reset", async (req, res) => {
+  const guildId = req.params.guildId;
+
+  await GuildConfig.findOneAndDelete({ guildId });
+  await GuildConfig.create({ guildId });
+
+  res.redirect(`/dashboard/${guildId}/configuration`);
+});
 app.get("/dashboard/:guildId/configuration", async (req, res) => {
+// ==========================
+// BACKUP
+// ==========================
+
+app.get("/dashboard/:guildId/backup/export", async (req, res) => {
+  try {
+    const guildId = req.params.guildId;
+
+    const config = await GuildConfig.findOne({ guildId });
+
+    if (!config) {
+      return res.send("❌ No hay configuración para exportar.");
+    }
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=backup-${guildId}.json`
+    );
+
+    res.setHeader(
+      "Content-Type",
+      "application/json"
+    );
+
+    res.send(JSON.stringify(config, null, 2));
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error exportando backup");
+  }
+});
+
+app.get("/dashboard/:guildId/backup/reset", async (req, res) => {
+  try {
+    const guildId = req.params.guildId;
+
+    await GuildConfig.findOneAndDelete({ guildId });
+
+    await GuildConfig.create({
+      guildId
+    });
+
+    res.redirect(
+      `/dashboard/${guildId}/configuration`
+    );
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error restaurando backup");
+  }
+});
+
+console.log("✅ Rutas backup cargadas");
   if (!req.session.access_token) {
     return res.redirect("/login");
   }
