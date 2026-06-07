@@ -760,8 +760,6 @@ function replaceVars(text, interaction, channel) {
     .replaceAll("{server.name}", interaction.guild.name)
     .replaceAll("{channel.name}", channel.name);
 }
-
-async function sendLog(guild, config, embed, files = []) {
 async function createBotLog(data) {
   try {
     await BotLog.create(data);
@@ -769,6 +767,8 @@ async function createBotLog(data) {
     console.log("❌ Error guardando BotLog:", error);
   }
 }
+
+async function sendLog(guild, config, embed, files = []) {
   if (!config?.ticketLogsChannelId) return;
 
   const logChannel = guild.channels.cache.get(config.ticketLogsChannelId);
@@ -780,7 +780,7 @@ async function createBotLog(data) {
   }).catch(() => {});
 }
 
-client.on("interactionCreate", async interaction => {
+      client.on("interactionCreate", async interaction => {
   try {
     if (
       interaction.isButton() &&
@@ -918,8 +918,6 @@ client.on("interactionCreate", async interaction => {
         embeds: [ticketEmbed],
         components: [ticketButtons]
       });
-
-      await sendLog(
 await createBotLog({
   guildId: interaction.guild.id,
   type: "ticket_created",
@@ -932,20 +930,21 @@ await createBotLog({
     channelName: ticketChannel.name
   }
 });
-        interaction.guild,
-        config,
-        new EmbedBuilder()
-          .setTitle("🎫 Ticket creado")
-          .setColor(config.ticketEmbedColor || "#23a559")
-          .setDescription(
-            `🎫 **Canal:** ${ticketChannel}\n` +
-            `👤 **Usuario:** ${interaction.user}\n` +
-            `🆔 **ID:** \`${interaction.user.id}\``
-          )
-          .setTimestamp()
-      );
 
-      return interaction.reply({
+await sendLog(
+  interaction.guild,
+  config,
+  new EmbedBuilder()
+    .setTitle("🎫 Ticket creado")
+    .setColor(config.ticketEmbedColor || "#23a559")
+    .setDescription(
+      `🎫 **Canal:** ${ticketChannel}\n` +
+      `👤 **Usuario:** ${interaction.user}\n` +
+      `🆔 **ID:** \`${interaction.user.id}\``
+    )
+    .setTimestamp()
+);
+           return interaction.reply({
         content: `✅ Ticket creado: ${ticketChannel}`,
         ephemeral: true
       });
