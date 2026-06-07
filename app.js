@@ -363,36 +363,38 @@ app.post("/dashboard/:guildId/configuration", async (req, res) => {
 
   const oldConfig = await GuildConfig.findOne({ guildId });
 
+  const updateData = {};
+
+  if (req.body.dashboardThemeColor !== undefined) {
+    updateData.dashboardThemeColor = req.body.dashboardThemeColor || "#7c3aed";
+  }
+
+  if (req.body.dashboardAnimations !== undefined || req.body.dashboardThemeColor !== undefined) {
+    updateData.dashboardAnimations = req.body.dashboardAnimations === "on";
+  }
+
+  if (req.body.dashboardParticles !== undefined || req.body.dashboardThemeColor !== undefined) {
+    updateData.dashboardParticles = req.body.dashboardParticles === "on";
+  }
+
+  if (req.body.dashboardGlass !== undefined || req.body.dashboardThemeColor !== undefined) {
+    updateData.dashboardGlass = req.body.dashboardGlass === "on";
+  }
+
+  if (
+    req.body.securityAntiVPN !== undefined ||
+    req.body.securityAntiProxy !== undefined ||
+    req.body.securityAntiNewAccounts !== undefined
+  ) {
+    updateData.securityAntiVPN = req.body.securityAntiVPN === "on";
+    updateData.securityAntiProxy = req.body.securityAntiProxy === "on";
+    updateData.securityAntiNewAccounts = req.body.securityAntiNewAccounts === "on";
+  }
+
   await GuildConfig.findOneAndUpdate(
     { guildId },
-    {
-      dashboardThemeColor:
-        req.body.dashboardThemeColor ||
-        oldConfig?.dashboardThemeColor ||
-        "#7c3aed",
-
-      dashboardAnimations:
-        req.body.dashboardAnimations === "on",
-
-      dashboardParticles:
-        req.body.dashboardParticles === "on",
-
-      dashboardGlass:
-        req.body.dashboardGlass === "on",
-
-      securityAntiVPN:
-        req.body.securityAntiVPN === "on",
-
-      securityAntiProxy:
-        req.body.securityAntiProxy === "on",
-
-      securityAntiNewAccounts:
-        req.body.securityAntiNewAccounts === "on"
-    },
-    {
-      upsert: true,
-      new: true
-    }
+    updateData,
+    { upsert: true, new: true }
   );
 
   res.redirect(`/dashboard/${guildId}/configuration`);
