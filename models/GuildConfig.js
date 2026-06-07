@@ -303,10 +303,24 @@ dashboardParticles: {
   type: Boolean,
   default: true
 },
-
 dashboardGlass: {
   type: Boolean,
   default: true
+},
+
+securityAntiVPN: {
+  type: Boolean,
+  default: false
+},
+
+securityAntiProxy: {
+  type: Boolean,
+  default: false
+},
+
+securityAntiNewAccounts: {
+  type: Boolean,
+  default: false
 }
 }, {
   timestamps: true

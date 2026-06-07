@@ -81,6 +81,8 @@
 
     <div class="dashboard-grid">
       <section>
+
+        <!-- APARIENCIA -->
         <form method="POST" action="/dashboard/<%= guild.id %>/configuration">
           <div class="card">
             <h2>🎨 Apariencia</h2>
@@ -118,6 +120,7 @@
           </div>
         </form>
 
+        <!-- MODULOS -->
         <div class="config-modules-grid">
 
           <a class="config-module" href="/dashboard/<%= guild.id %>/tickets">
@@ -185,62 +188,78 @@
           </button>
 
         </div>
-        <div id="security" class="config-section card hidden-section">
-          <h2>🔒 Seguridad</h2>
-          <p class="muted-text">Protecciones avanzadas del servidor.</p>
 
-          <label class="switch-row">
-            <span>Anti VPN</span>
-            <input class="switch-input" type="checkbox">
-            <span class="toggle-slider"></span>
-          </label>
+        <!-- SEGURIDAD -->
+        <form method="POST" action="/dashboard/<%= guild.id %>/configuration">
+          <div id="security" class="config-section card hidden-section">
+            <h2>🔒 Seguridad</h2>
+            <p class="muted-text">Protecciones avanzadas del servidor.</p>
 
-          <label class="switch-row">
-            <span>Anti Proxy</span>
-            <input class="switch-input" type="checkbox">
-            <span class="toggle-slider"></span>
-          </label>
+            <label class="switch-row">
+              <span>Anti VPN</span>
+              <input class="switch-input" type="checkbox" name="securityAntiVPN" <%= config.securityAntiVPN ? "checked" : "" %>>
+              <span class="toggle-slider"></span>
+            </label>
 
-          <label class="switch-row">
-            <span>Anti cuentas nuevas</span>
-            <input class="switch-input" type="checkbox">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
+            <label class="switch-row">
+              <span>Anti Proxy</span>
+              <input class="switch-input" type="checkbox" name="securityAntiProxy" <%= config.securityAntiProxy ? "checked" : "" %>>
+              <span class="toggle-slider"></span>
+            </label>
 
+            <label class="switch-row">
+              <span>Anti cuentas nuevas</span>
+              <input class="switch-input" type="checkbox" name="securityAntiNewAccounts" <%= config.securityAntiNewAccounts ? "checked" : "" %>>
+              <span class="toggle-slider"></span>
+            </label>
+
+            <div class="actions">
+              <button class="btn green" type="submit">💾 Guardar seguridad</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- BACKUP -->
         <div id="backup" class="config-section card hidden-section">
           <h2>💾 Backup</h2>
           <p class="muted-text">Exportá o restaurá configuraciones.</p>
 
           <div class="actions">
-<a class="btn"
-   href="/dashboard/<%= guild.id %>/backup/export">
-   📥 Exportar backup
-</a>
-<form method="POST"
-      action="/dashboard/<%= guild.id %>/backup/import"
-      enctype="multipart/form-data"
-      style="display:inline-block;">
+            <a class="btn" href="/dashboard/<%= guild.id %>/backup/export">
+              📥 Exportar backup
+            </a>
 
-  <input type="file"
-         name="backupFile"
-         accept=".json"
-         required
-         class="input"
-         style="margin-bottom:10px;">
+            <form
+              method="POST"
+              action="/dashboard/<%= guild.id %>/backup/import"
+              enctype="multipart/form-data"
+              style="display:inline-block;"
+            >
+              <input
+                type="file"
+                name="backupFile"
+                accept=".json"
+                required
+                class="input"
+                style="margin-bottom:10px;"
+              >
 
-  <button class="btn gray" type="submit">
-    📤 Importar backup
-  </button>
-</form>
-<a class="btn red"
-   href="/dashboard/<%= guild.id %>/backup/reset"
-   onclick="return confirm('¿Restaurar toda la configuración?');">
-   ♻️ Restaurar
-</a>
+              <button class="btn gray" type="submit">
+                📤 Importar backup
+              </button>
+            </form>
+
+            <a
+              class="btn red"
+              href="/dashboard/<%= guild.id %>/backup/reset"
+              onclick="return confirm('¿Restaurar toda la configuración?');"
+            >
+              ♻️ Restaurar
+            </a>
+          </div>
         </div>
-        </div>
 
+        <!-- SISTEMA -->
         <div id="system" class="config-section card hidden-section">
           <h2>📊 Sistema</h2>
           <p class="muted-text">Estado actual del bot.</p>
@@ -272,6 +291,7 @@
           </div>
         </div>
 
+        <!-- BOT -->
         <div id="bot" class="config-section card hidden-section">
           <h2>🤖 Bot</h2>
           <p class="muted-text">Información visual del bot.</p>
@@ -286,6 +306,7 @@
           <input class="input" value="Gestionando tickets y verificaciones" disabled>
         </div>
 
+        <!-- PREMIUM -->
         <div id="premium" class="config-section card hidden-section">
           <h2>👑 Premium</h2>
           <p class="muted-text">Funciones exclusivas del dashboard.</p>
@@ -324,6 +345,7 @@
             </div>
           </div>
         </div>
+
       </section>
 
       <aside class="preview-box">
@@ -377,12 +399,6 @@ function openConfigSection(id) {
       behavior: "smooth",
       block: "start"
     });
-  }
-}
-function confirmRestore() {
-  const ok = confirm("⚠️ ¿Seguro querés restaurar la configuración? Esto puede borrar cambios.");
-  if (ok) {
-    window.location.href = "/dashboard/<%= guild.id %>/backup/reset";
   }
 }
 </script>
