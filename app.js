@@ -361,31 +361,16 @@ app.get("/dashboard/:guildId/configuration", async (req, res) => {
 app.post("/dashboard/:guildId/configuration", async (req, res) => {
   const guildId = req.params.guildId;
 
-  const oldConfig = await GuildConfig.findOne({ guildId });
-
   const updateData = {};
 
   if (req.body.dashboardThemeColor !== undefined) {
     updateData.dashboardThemeColor = req.body.dashboardThemeColor || "#7c3aed";
-  }
-
-  if (req.body.dashboardAnimations !== undefined || req.body.dashboardThemeColor !== undefined) {
     updateData.dashboardAnimations = req.body.dashboardAnimations === "on";
-  }
-
-  if (req.body.dashboardParticles !== undefined || req.body.dashboardThemeColor !== undefined) {
     updateData.dashboardParticles = req.body.dashboardParticles === "on";
-  }
-
-  if (req.body.dashboardGlass !== undefined || req.body.dashboardThemeColor !== undefined) {
     updateData.dashboardGlass = req.body.dashboardGlass === "on";
   }
 
-  if (
-    req.body.securityAntiVPN !== undefined ||
-    req.body.securityAntiProxy !== undefined ||
-    req.body.securityAntiNewAccounts !== undefined
-  ) {
+  if (req.body.securityForm === "1") {
     updateData.securityAntiVPN = req.body.securityAntiVPN === "on";
     updateData.securityAntiProxy = req.body.securityAntiProxy === "on";
     updateData.securityAntiNewAccounts = req.body.securityAntiNewAccounts === "on";

@@ -190,9 +190,11 @@
         </div>
 
         <!-- SEGURIDAD -->
-        <form method="POST" action="/dashboard/<%= guild.id %>/configuration">
-          <div id="security" class="config-section card hidden-section">
-            <h2>🔒 Seguridad</h2>
+<form method="POST" action="/dashboard/<%= guild.id %>/configuration">
+  <input type="hidden" name="securityForm" value="1">
+
+  <div id="security" class="config-section card hidden-section">
+                <h2>🔒 Seguridad</h2>
             <p class="muted-text">Protecciones avanzadas del servidor.</p>
 
             <label class="switch-row">
