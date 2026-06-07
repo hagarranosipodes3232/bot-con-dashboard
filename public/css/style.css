@@ -1044,3 +1044,320 @@ select:focus{
     text-align:center;
   }
 }
+/* ============================= */
+/* DASHBOARD GOD MODE V3 */
+/* ============================= */
+
+:root{
+  --glow-primary: 0 0 40px rgba(88,101,242,.35);
+  --glow-green: 0 0 35px rgba(34,197,94,.28);
+  --glass: rgba(15,23,42,.58);
+}
+
+/* Aurora animada */
+body::after{
+  content:"";
+  position:fixed;
+  inset:-40%;
+  background:
+    conic-gradient(
+      from 180deg,
+      transparent,
+      rgba(88,101,242,.18),
+      rgba(124,58,237,.16),
+      rgba(34,197,94,.10),
+      transparent
+    );
+  animation:auroraSpin 22s linear infinite;
+  pointer-events:none;
+  z-index:-2;
+  filter:blur(60px);
+}
+
+@keyframes auroraSpin{
+  to{transform:rotate(360deg);}
+}
+
+/* Header mega premium */
+.page-header{
+  position:relative;
+  overflow:hidden;
+}
+
+.page-header::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 20% 20%,rgba(255,255,255,.14),transparent 20%),
+    linear-gradient(120deg,transparent,rgba(255,255,255,.08),transparent);
+  opacity:.7;
+}
+
+.page-title,
+.header-badge{
+  position:relative;
+  z-index:2;
+}
+
+/* Títulos con brillo */
+h1,h2{
+  text-shadow:0 0 30px rgba(88,101,242,.25);
+}
+
+/* Cards con borde animado */
+.card,
+.preview-box,
+.stat-card,
+.button-config-card{
+  isolation:isolate;
+}
+
+.card::before,
+.preview-box::before,
+.stat-card::before,
+.button-config-card::before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  border-radius:inherit;
+  padding:1px;
+  background:linear-gradient(
+    135deg,
+    rgba(88,101,242,.65),
+    rgba(124,58,237,.25),
+    rgba(34,197,94,.35),
+    rgba(88,101,242,.65)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  opacity:0;
+  transition:.35s;
+  z-index:-1;
+}
+
+.card:hover::before,
+.preview-box:hover::before,
+.stat-card:hover::before,
+.button-config-card:hover::before{
+  opacity:1;
+}
+
+/* Sidebar premium */
+.sidebar::after{
+  content:"";
+  position:absolute;
+  top:20px;
+  right:-1px;
+  width:1px;
+  height:calc(100% - 40px);
+  background:linear-gradient(
+    transparent,
+    rgba(88,101,242,.75),
+    rgba(34,197,94,.45),
+    transparent
+  );
+}
+
+.menu a{
+  font-weight:750;
+}
+
+.menu a.active{
+  box-shadow:
+    0 14px 35px rgba(88,101,242,.35),
+    inset 0 0 0 1px rgba(255,255,255,.15);
+}
+
+.menu a.active::after{
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#fff;
+  margin-left:auto;
+  box-shadow:0 0 18px white;
+}
+
+/* Logo más brutal */
+.logo-icon{
+  position:relative;
+}
+
+.logo-icon::after{
+  content:"";
+  position:absolute;
+  inset:-8px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#5865f2,#7c3aed);
+  filter:blur(18px);
+  opacity:.45;
+  z-index:-1;
+}
+
+/* Stats más pro */
+.stat-card{
+  min-height:135px;
+}
+
+.stat-card::after{
+  background:
+    radial-gradient(circle at top right,rgba(255,255,255,.13),transparent 35%),
+    linear-gradient(120deg,transparent,rgba(255,255,255,.06),transparent);
+}
+
+.stat-card strong{
+  letter-spacing:-.4px;
+}
+
+/* Inputs premium */
+label{
+  letter-spacing:.2px;
+}
+
+.input,
+.textarea,
+select{
+  background:
+    linear-gradient(180deg,rgba(2,6,23,.78),rgba(15,23,42,.58));
+}
+
+.input::placeholder,
+.textarea::placeholder{
+  color:rgba(148,163,184,.65);
+}
+
+select{
+  cursor:pointer;
+}
+
+/* Discord preview más real */
+.discord-preview{
+  background:
+    linear-gradient(180deg,#313338,#25262b);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.06),
+    0 18px 45px rgba(0,0,0,.25);
+}
+
+.preview-author{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.preview-author::before{
+  content:"";
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#5865f2,#7c3aed);
+  box-shadow:0 0 20px rgba(88,101,242,.4);
+}
+
+/* Botones Discord */
+.discord-btn{
+  border-radius:9px;
+  min-height:38px;
+  font-weight:800;
+}
+
+.discord-btn:active,
+.btn:active{
+  transform:scale(.97);
+}
+
+/* Editor de botones más lindo */
+.button-editor-inline{
+  background:rgba(2,6,23,.28);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:22px;
+  padding:22px;
+}
+
+.button-config-card{
+  position:relative;
+  overflow:hidden;
+}
+
+.button-config-card h3{
+  color:#e0e7ff;
+}
+
+/* Acciones flotantes mejoradas */
+.actions{
+  box-shadow:
+    0 18px 50px rgba(0,0,0,.45),
+    0 0 35px rgba(88,101,242,.14);
+}
+
+.actions::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:linear-gradient(120deg,rgba(255,255,255,.08),transparent);
+  pointer-events:none;
+}
+
+/* Botón principal vibrante */
+.btn.green{
+  box-shadow:var(--glow-green);
+}
+
+.btn:not(.green):not(.red):not(.gray){
+  box-shadow:var(--glow-primary);
+}
+
+/* Loading shimmer en cards */
+.card > *,
+.preview-box > *,
+.stat-card > *{
+  position:relative;
+  z-index:2;
+}
+
+/* Scrollbar más fino */
+::-webkit-scrollbar{
+  width:7px;
+}
+
+::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,#5865f2,#22c55e);
+}
+
+/* Animación escalonada */
+.card:nth-child(1){animation-delay:.05s;}
+.card:nth-child(2){animation-delay:.10s;}
+.card:nth-child(3){animation-delay:.15s;}
+.card:nth-child(4){animation-delay:.20s;}
+.stat-card:nth-child(1){animation-delay:.05s;}
+.stat-card:nth-child(2){animation-delay:.10s;}
+.stat-card:nth-child(3){animation-delay:.15s;}
+.stat-card:nth-child(4){animation-delay:.20s;}
+
+/* Mobile premium */
+@media(max-width:1050px){
+  .sidebar{
+    border-right:none;
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+
+  .menu{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding-bottom:6px;
+  }
+
+  .menu a{
+    min-width:max-content;
+  }
+
+  .sidebar::after{
+    display:none;
+  }
+}

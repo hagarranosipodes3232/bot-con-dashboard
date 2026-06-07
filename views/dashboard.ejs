@@ -17,14 +17,25 @@
       </div>
     </div>
     <div class="menu">
-      <a href="/servers">🏠 Inicio</a>
-     <a href="/dashboard/<%= guild.id %>/tickets">🎫 Tickets</a>
-     <a href="/dashboard/<%= guild.id %>/verification" onclick="window.location.href=this.href">
-  ✅ Verificación
-</a>
-      <a>📜 Logs</a>
-      <a>⚙️ Configuración</a>
-    </div>
+  <a href="/servers">🏠 Dashboard</a>
+
+  <a class="active" href="/dashboard/<%= guild.id %>/tickets">
+    🎫 Tickets
+  </a>
+
+  <a href="/dashboard/<%= guild.id %>/verification">
+    🛡️ Verificación
+  </a>
+
+  <a>📊 Estadísticas</a>
+
+  <a>📜 Logs</a>
+
+  <a>⚙️ Configuración</a>
+
+  <a>👑 Premium</a>
+</div>
+       
     <div class="sidebar-footer"><span>Servidor actual</span><strong><%= guild.name %></strong></div>
   </aside>
 
