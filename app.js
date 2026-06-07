@@ -207,6 +207,29 @@ app.get("/dashboard/:guildId/logs", async (req, res) => {
     stats
   });
 });
+app.get("/dashboard/:guildId/configuration", async (req, res) => {
+  if (!req.session.access_token) {
+    return res.redirect("/login");
+  }
+
+  const guildId = req.params.guildId;
+  const guild = client.guilds.cache.get(guildId);
+
+  if (!guild) {
+    return res.send("❌ El bot no está en este servidor.");
+  }
+
+  let config = await GuildConfig.findOne({ guildId });
+
+  if (!config) {
+    config = await GuildConfig.create({ guildId });
+  }
+
+  res.render("configuration", {
+    guild,
+    config
+  });
+});
 function buildTicketButtonsFromBody(body) {
   const ticketButtons = [];
 
