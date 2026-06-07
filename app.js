@@ -200,9 +200,14 @@ app.get("/dashboard/:guildId/logs", async (req, res) => {
     ticketsClosed: await BotLog.countDocuments({ guildId, type: "ticket_closed" }),
     verifications: await BotLog.countDocuments({ guildId, type: "verification" })
   };
+let config = await GuildConfig.findOne({ guildId });
 
+if (!config) {
+  config = await GuildConfig.create({ guildId });
+}
   res.render("logs", {
     guild,
+  config,
     logs,
     stats
   });
