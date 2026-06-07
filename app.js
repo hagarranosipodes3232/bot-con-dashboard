@@ -358,22 +358,6 @@ app.get("/dashboard/:guildId/configuration", async (req, res) => {
     config
   });
 });
-app.post("/dashboard/:guildId/configuration", async (req, res) => {
-console.log(req.body);
-  const guildId = req.params.guildId;
-
-  await GuildConfig.findOneAndUpdate(
-    { guildId },
-    {
-      dashboardThemeColor: req.body.dashboardThemeColor || "#7c3aed",
-      dashboardAnimations: req.body.dashboardAnimations === "on",
-      dashboardParticles: req.body.dashboardParticles === "on",
-      dashboardGlass: req.body.dashboardGlass === "on"
-    },
-    { upsert: true, new: true }
-  );
-
-  res.redirect(`/dashboard/${guildId}/configuration`);
 });
 function buildTicketButtonsFromBody(body) {
   const ticketButtons = [];
