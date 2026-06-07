@@ -149,6 +149,10 @@ function filterLogs() {
 searchInput.addEventListener("input", filterLogs);
 filterSelect.addEventListener("change", filterLogs);
 </script>
-
+<script>
+setInterval(() => {
+  window.location.reload();
+}, 5000);
+</script>
 </body>
 </html>
