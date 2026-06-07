@@ -1106,12 +1106,6 @@ h1,h2{
 }
 
 /* Cards con borde animado */
-.card,
-.preview-box,
-.stat-card,
-.button-config-card{
-  isolation:isolate;
-}
 
 .card::before,
 .preview-box::before,
@@ -1310,14 +1304,6 @@ select{
 
 .btn:not(.green):not(.red):not(.gray){
   box-shadow:var(--glow-primary);
-}
-
-/* Loading shimmer en cards */
-.card > *,
-.preview-box > *,
-.stat-card > *{
-  position:relative;
-  z-index:2;
 }
 
 /* Scrollbar más fino */
@@ -1639,29 +1625,18 @@ select option:hover {
   background:white;
   transform:translateX(26px);
 }
-/* DESACTIVAR ANIMACIONES */
-
-.no-animations *,
-.no-animations *::before,
-.no-animations *::after{
-  animation:none !important;
-  transition:none !important;
-}
-
-/* DESACTIVAR PARTICULAS */
-
-.no-particles .layout::before,
-.no-particles body::after{
-  display:none !important;
-}
-
-/* DESACTIVAR GLASS */
-
-.no-glass .card,
-.no-glass .preview-box,
-.no-glass .stat-card,
-.no-glass .button-config-card,
-.no-glass .sidebar{
-  backdrop-filter:none !important;
-  background:#0f172a !important;
+.card::before,
+.card::after,
+.preview-box::before,
+.preview-box::after,
+.stat-card::before,
+.stat-card::after,
+.button-config-card::before,
+.button-config-card::after,
+.page-header::before,
+.page-header::after,
+.layout::before,
+body::before,
+body::after {
+    pointer-events: none !important;
 }
