@@ -288,8 +288,26 @@ verificationShowProfileButton: {
 verificationShowCopyIdButton: {
   type: Boolean,
   default: true
-}
+},
+dashboardThemeColor: {
+  type: String,
+  default: "#7c3aed"
+},
 
+dashboardAnimations: {
+  type: Boolean,
+  default: true
+},
+
+dashboardParticles: {
+  type: Boolean,
+  default: true
+},
+
+dashboardGlass: {
+  type: Boolean,
+  default: true
+}
 }, {
   timestamps: true
 });
