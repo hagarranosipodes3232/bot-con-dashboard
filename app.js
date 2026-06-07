@@ -518,7 +518,7 @@ const geo = await axios
   .then(r => r.data)
   .catch(() => null);
 
-   const fields = [];
+ const fields = [];
 
 const createdAt = new Date(Number((BigInt(user.id) >> 22n) + 1420070400000n));
 const accountAgeDays = Math.floor((Date.now() - createdAt.getTime()) / 86400000);
@@ -626,35 +626,36 @@ if (config.verificationShowSecurityAlerts) {
     inline: false
   });
 }
-console.log(config);
-    const logEmbed = new EmbedBuilder()
-      .setTitle("✅ Usuario verificado")
-      .setColor(config.verificationEmbedColor || "#23a559")
-      .setThumbnail(user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png` : null)
-      .addFields(fields)
-      .setTimestamp();
 
-    const logChannel = guild.channels.cache.get(config.verificationLogsChannelId);
+const logEmbed = new EmbedBuilder()
+  .setTitle("✅ Usuario verificado")
+  .setColor(config.verificationEmbedColor || "#23a559")
+  .setThumbnail(
+    user.avatar
+      ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+      : null
+  )
+  .addFields(fields)
+  .setTimestamp();
+const logChannel = guild.channels.cache.get(config.verificationLogsChannelId);
 
-    if (logChannel) {
-      await logChannel.send({ embeds: [logEmbed] }).catch(console.error);
-    }
+if (logChannel) {
+  await logChannel.send({ embeds: [logEmbed] }).catch(console.error);
+}
 
-    res.send(`
-      <html>
-      <body style="background:#020617;color:white;font-family:Arial;text-align:center;padding-top:100px;">
-        <h1>✅ Verificación completada</h1>
-        <p>Ya fuiste verificado correctamente en el servidor.</p>
-      </body>
-      </html>
-    `);
-
-  } catch (error) {
-    console.log("❌ Error verify callback:", error.response?.data || error);
-    res.send("❌ Error al completar la verificación.");
-  }
+return res.send(`
+<html>
+<body style="background:#020617;color:white;font-family:Arial;text-align:center;padding-top:100px;">
+  <h1>✅ Verificación completada</h1>
+  <p>Ya fuiste verificado correctamente en el servidor.</p>
+</body>
+</html>
+`);
+} catch (error) {
+  console.log("❌ Error verify callback:", error.response?.data || error);
+  return res.send("❌ Error al completar la verificación.");
+}
 });
-
 app.get("/verify/:guildId", async (req, res) => {
   const guildId = req.params.guildId;
 
