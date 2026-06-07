@@ -514,7 +514,7 @@ app.get("/verify/callback", async (req, res) => {
 
     const ip = getClientIP(req);
 const geo = await axios
-  .get(`http://ip-api.com/json/${ip}?fields=status,country,regionName,city,isp,proxy,hosting,query`)
+.get(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,regionName,city,isp,as,proxy,hosting,mobile,timezone,query`)
   .then(r => r.data)
   .catch(() => null);
 
