@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Logs Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <div>
+        <div class="logo-title">012 Bot</div>
+        <div class="logo-status"><span class="status-dot"></span> Online</div>
+      </div>
+    </div>
+
+    <div class="menu">
+      <a href="/servers">🏠 Dashboard</a>
+      <a href="/dashboard/<%= guild.id %>/tickets">🎫 Tickets</a>
+      <a>🛡️ Verificación</a>
+      <a>📊 Estadísticas</a>
+      <a class="active" href="/dashboard/<%= guild.id %>/logs">📜 Logs</a>
+      <a>⚙️ Configuración</a>
+      <a>👑 Premium</a>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="page-header">
+      <div class="page-title">
+        <h1>📜 Centro de Logs</h1>
+        <p>Registro completo de actividad del servidor <b><%= guild.name %></b>.</p>
+      </div>
+
+      <div class="header-badge">
+        <span class="status-dot"></span>
+        Logs activos
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📜</div>
+        <span>Total logs</span>
+        <strong><%= stats.total %></strong>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">🎫</div>
+        <span>Tickets creados</span>
+        <strong><%= stats.ticketsCreated %></strong>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">🔒</div>
+        <span>Tickets cerrados</span>
+        <strong><%= stats.ticketsClosed %></strong>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <span>Verificaciones</span>
+        <strong><%= stats.verifications %></strong>
+      </div>
+    </div>
+
+    <div class="card logs-toolbar">
+      <input class="input" id="logSearch" placeholder="🔍 Buscar por usuario, tipo o descripción...">
+
+      <select class="input" id="logFilter">
+        <option value="all">Todos los logs</option>
+        <option value="ticket_created">Tickets creados</option>
+        <option value="ticket_closed">Tickets cerrados</option>
+        <option value="verification">Verificaciones</option>
+      </select>
+    </div>
+
+    <div class="logs-list" id="logsList">
+      <% if (!logs || logs.length === 0) { %>
+        <div class="card empty-logs">
+          <h2>📭 No hay logs todavía</h2>
+          <p>Cuando se creen o cierren tickets, aparecerán acá.</p>
+        </div>
+      <% } %>
+
+      <% logs.forEach(log => { %>
+        <div class="log-card" data-type="<%= log.type %>">
+          <div class="log-icon">
+            <% if (log.type === "ticket_created") { %>🎫<% } %>
+            <% if (log.type === "ticket_closed") { %>🔒<% } %>
+            <% if (log.type === "verification") { %>✅<% } %>
+            <% if (!["ticket_created","ticket_closed","verification"].includes(log.type)) { %>📌<% } %>
+          </div>
+
+          <div class="log-content">
+            <div class="log-top">
+              <h3><%= log.title %></h3>
+              <span><%= new Date(log.createdAt).toLocaleString("es-AR") %></span>
+            </div>
+
+            <p><%= log.description %></p>
+
+            <div class="log-meta">
+              <% if (log.username) { %>
+                <span>👤 <%= log.username %></span>
+              <% } %>
+
+              <% if (log.staffId) { %>
+                <span>👮 Staff: <%= log.staffId %></span>
+              <% } %>
+
+              <% if (log.metadata?.reason) { %>
+                <span>📝 <%= log.metadata.reason %></span>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const searchInput = document.getElementById("logSearch");
+const filterSelect = document.getElementById("logFilter");
+const cards = document.querySelectorAll(".log-card");
+
+function filterLogs() {
+  const search = searchInput.value.toLowerCase();
+  const type = filterSelect.value;
+
+  cards.forEach(card => {
+    const text = card.innerText.toLowerCase();
+    const cardType = card.dataset.type;
+
+    const matchesSearch = text.includes(search);
+    const matchesType = type === "all" || cardType === type;
+
+    card.style.display = matchesSearch && matchesType ? "flex" : "none";
+  });
+}
+
+searchInput.addEventListener("input", filterLogs);
+filterSelect.addEventListener("change", filterLogs);
+</script>
+
+</body>
+</html>

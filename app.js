@@ -7,6 +7,7 @@ const mongoose = require("mongoose");
 const discordTranscripts = require("discord-html-transcripts");
 
 const GuildConfig = require("./models/GuildConfig");
+const BotLog = require("./models/BotLog");
 
 const {
   Client,
@@ -175,6 +176,35 @@ app.get("/dashboard/:guildId", async (req, res) => {
     categories,
     textChannels,
     roles
+  });
+});
+app.get("/dashboard/:guildId/logs", async (req, res) => {
+  if (!req.session.access_token) {
+    return res.redirect("/login");
+  }
+
+  const guildId = req.params.guildId;
+  const guild = client.guilds.cache.get(guildId);
+
+  if (!guild) {
+    return res.send("❌ El bot no está en este servidor.");
+  }
+
+  const logs = await BotLog.find({ guildId })
+    .sort({ createdAt: -1 })
+    .limit(100);
+
+  const stats = {
+    total: await BotLog.countDocuments({ guildId }),
+    ticketsCreated: await BotLog.countDocuments({ guildId, type: "ticket_created" }),
+    ticketsClosed: await BotLog.countDocuments({ guildId, type: "ticket_closed" }),
+    verifications: await BotLog.countDocuments({ guildId, type: "verification" })
+  };
+
+  res.render("logs", {
+    guild,
+    logs,
+    stats
   });
 });
 function buildTicketButtonsFromBody(body) {
@@ -732,6 +762,13 @@ function replaceVars(text, interaction, channel) {
 }
 
 async function sendLog(guild, config, embed, files = []) {
+async function createBotLog(data) {
+  try {
+    await BotLog.create(data);
+  } catch (error) {
+    console.log("❌ Error guardando BotLog:", error);
+  }
+}
   if (!config?.ticketLogsChannelId) return;
 
   const logChannel = guild.channels.cache.get(config.ticketLogsChannelId);
@@ -883,6 +920,18 @@ client.on("interactionCreate", async interaction => {
       });
 
       await sendLog(
+await createBotLog({
+  guildId: interaction.guild.id,
+  type: "ticket_created",
+  title: "🎫 Ticket creado",
+  description: `Ticket creado por ${interaction.user.username}`,
+  userId: interaction.user.id,
+  username: interaction.user.username,
+  channelId: ticketChannel.id,
+  metadata: {
+    channelName: ticketChannel.name
+  }
+});
         interaction.guild,
         config,
         new EmbedBuilder()
@@ -1068,7 +1117,19 @@ client.on("interactionCreate", async interaction => {
           .setTimestamp(),
         [transcript]
       );
-
+await createBotLog({
+  guildId: interaction.guild.id,
+  type: "ticket_closed",
+  title: "🔒 Ticket cerrado",
+  description: `Ticket cerrado por ${interaction.user.username}`,
+  userId: data.owner,
+  username: user?.username || "Usuario",
+  staffId: interaction.user.id,
+  channelId: interaction.channel.id,
+  metadata: {
+    reason
+  }
+});
       setTimeout(() => {
         interaction.channel.delete().catch(() => {});
       }, 5000);
