@@ -416,56 +416,10 @@ app.post("/dashboard/:guildId/verification/send-panel", async (req, res) => {
     return res.send("❌ Error enviando panel de verificación.");
   }
 });
-
 // =========================
 // VERIFICACION WEB
 // =========================
 
-app.get("/verify/:guildId", async (req, res) => {
-  const guildId = req.params.guildId;
-
-  res.send(`
-    <html>
-    <head>
-      <title>Verificación</title>
-    </head>
-    <body style="background:#0f172a;color:white;font-family:Arial;text-align:center;padding-top:100px;">
-      <h1>✅ Verificación</h1>
-      <p>Para verificarte en el servidor continuá con Discord.</p>
-
-      <a href="/verify/${guildId}/discord"
-      style="
-      background:#5865f2;
-      color:white;
-      padding:15px 25px;
-      border-radius:10px;
-      text-decoration:none;
-      display:inline-block;
-      margin-top:20px;">
-      Verificarme con Discord
-      </a>
-    </body>
-    </html>
-  `);
-});
-
-app.get("/verify/:guildId/discord", (req, res) => {
-  const guildId = req.params.guildId;
-
-  const url =
-    "https://discord.com/oauth2/authorize" +
-    `?client_id=${process.env.CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(process.env.BASE_URL + "/verify/callback")}` +
-    "&response_type=code" +
-    `&state=${guildId}` +
-    "&scope=identify";
-
-  res.redirect(url);
-});
-
-// =========================
-// INVITE BOT
-// =========================
 function maskIP(ip = "") {
   if (!ip) return "No disponible";
 
@@ -530,9 +484,6 @@ app.get("/verify/callback", async (req, res) => {
     }
 
     const ip = getClientIP(req);
-    const geo = await axios.get(`http://ip-api.com/json/${ip}?fields=status,country,regionName,city,isp,proxy,hosting,query`)
-      .then(r => r.data)
-      .catch(() => null);
 
     const fields = [];
 
@@ -543,31 +494,8 @@ app.get("/verify/callback", async (req, res) => {
       fields.push({ name: "🌐 IP", value: `\`${maskIP(ip)}\``, inline: true });
     }
 
-    if (geo?.status === "success") {
-      if (config.verificationShowCity) {
-        fields.push({ name: "🏙️ Ciudad aproximada", value: geo.city || "No disponible", inline: true });
-      }
-
-      if (config.verificationShowRegion) {
-        fields.push({ name: "📍 Región aproximada", value: geo.regionName || "No disponible", inline: true });
-      }
-
-      if (config.verificationShowCountry) {
-        fields.push({ name: "🌎 País", value: geo.country || "No disponible", inline: true });
-      }
-
-      if (config.verificationShowISP) {
-        fields.push({ name: "📡 ISP", value: geo.isp || "No disponible", inline: true });
-      }
-
-      if (config.verificationShowVPN) {
-        const vpnText = geo.proxy || geo.hosting ? "Posible VPN/Proxy/Hosting" : "No detectado";
-        fields.push({ name: "🛡️ VPN / Proxy", value: vpnText, inline: true });
-      }
-    }
-
     if (config.verificationShowAccountCreated) {
-      const createdAt = new Date((BigInt(user.id) >> 22n) + 1420070400000n);
+      const createdAt = new Date(Number((BigInt(user.id) >> 22n) + 1420070400000n));
       fields.push({
         name: "📅 Cuenta creada",
         value: `<t:${Math.floor(createdAt.getTime() / 1000)}:F>`,
@@ -578,7 +506,7 @@ app.get("/verify/callback", async (req, res) => {
     const logEmbed = new EmbedBuilder()
       .setTitle("✅ Usuario verificado")
       .setColor(config.verificationEmbedColor || "#23a559")
-      .setThumbnail(`https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`)
+      .setThumbnail(user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png` : null)
       .addFields(fields)
       .setTimestamp();
 
@@ -602,6 +530,52 @@ app.get("/verify/callback", async (req, res) => {
     res.send("❌ Error al completar la verificación.");
   }
 });
+
+app.get("/verify/:guildId", async (req, res) => {
+  const guildId = req.params.guildId;
+
+  res.send(`
+    <html>
+    <head>
+      <title>Verificación</title>
+    </head>
+    <body style="background:#0f172a;color:white;font-family:Arial;text-align:center;padding-top:100px;">
+      <h1>✅ Verificación</h1>
+      <p>Para verificarte en el servidor continuá con Discord.</p>
+
+      <a href="/verify/${guildId}/discord"
+      style="
+      background:#5865f2;
+      color:white;
+      padding:15px 25px;
+      border-radius:10px;
+      text-decoration:none;
+      display:inline-block;
+      margin-top:20px;">
+      Verificarme con Discord
+      </a>
+    </body>
+    </html>
+  `);
+});
+
+app.get("/verify/:guildId/discord", (req, res) => {
+  const guildId = req.params.guildId;
+
+  const url =
+    "https://discord.com/oauth2/authorize" +
+    `?client_id=${process.env.CLIENT_ID}` +
+    `&redirect_uri=${encodeURIComponent(process.env.BASE_URL + "/verify/callback")}` +
+    "&response_type=code" +
+    `&state=${guildId}` +
+    "&scope=identify";
+
+  res.redirect(url);
+});
+
+// =========================
+// INVITE BOT
+// =========================
 app.get("/invite", (req, res) => {
   const url =
     "https://discord.com/oauth2/authorize" +
