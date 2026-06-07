@@ -321,6 +321,7 @@ dashboardGlass: {
   type: Boolean,
   default: true
 }
+
 }, {
   timestamps: true
 });
