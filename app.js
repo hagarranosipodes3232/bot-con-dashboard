@@ -358,7 +358,6 @@ app.get("/dashboard/:guildId/configuration", async (req, res) => {
     config
   });
 });
-});
 function buildTicketButtonsFromBody(body) {
   const ticketButtons = [];
 
