@@ -376,10 +376,25 @@ app.get("/dashboard/:guildId/stats", async (req, res) => {
     config = await GuildConfig.create({ guildId });
   }
 
-  const stats = {
-    members: guild.memberCount || 0
-  };
+const uptimeSeconds = process.uptime();
 
+const days = Math.floor(uptimeSeconds / 86400);
+const hours = Math.floor((uptimeSeconds % 86400) / 3600);
+const minutes = Math.floor((uptimeSeconds % 3600) / 60);
+
+const stats = {
+  members: guild.memberCount || 0,
+
+  ping: client.ws.ping,
+
+  ram: (
+    process.memoryUsage().heapUsed /
+    1024 /
+    1024
+  ).toFixed(0),
+
+  uptime: `${days}d ${hours}h ${minutes}m`
+};
   res.render("stats", {
     guild,
     config,
