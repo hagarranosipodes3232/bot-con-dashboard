@@ -540,349 +540,66 @@ app.post("/dashboard/:guildId/premium/welcome", async (req, res) => {
     res.send("❌ Error guardando bienvenida.");
   }
 });
-app.post("/dashboard/:guildId/premium/command", async (req, res) => {
-require("dotenv").config();
-
-const express = require("express");
-const session = require("express-session");
-const axios = require("axios");
-const mongoose = require("mongoose");
-const multer = require("multer");
-const upload = multer({
-  storage: multer.memoryStorage()
-});
-const discordTranscripts = require("discord-html-transcripts");
-
-const GuildConfig = require("./models/GuildConfig");
-const CustomCommand = require("./models/CustomCommand");
-const BotLog = require("./models/BotLog");
-
-const {
-  Client,
-  GatewayIntentBits,
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  ChannelType,
-  PermissionsBitField,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  REST,
-  Routes,
-  SlashCommandBuilder
-} = require("discord.js");
-
-const app = express();
-
-const client = new Client({
-intents: [
-  GatewayIntentBits.Guilds,
-  GatewayIntentBits.GuildMembers
-]
- });
-
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB conectado"))
-  .catch(console.error);
-
-app.set("view engine", "ejs");
-app.use(express.static("public"));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-app.use(session({
-  secret: process.env.SESSION_SECRET || "012_secret",
-  resave: false,
-  saveUninitialized: false
-}));
-
-app.get("/", (req, res) => {
-  res.render("home");
-});
-
-app.get("/login", (req, res) => {
-  const url =
-    "https://discord.com/oauth2/authorize" +
-    `?client_id=${process.env.CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(process.env.BASE_URL + "/callback")}` +
-    "&response_type=code" +
-    "&scope=identify%20guilds";
-
-  res.redirect(url);
-});
-
-app.get("/callback", async (req, res) => {
-  const code = req.query.code;
-
-  if (!code) {
-    return res.send("❌ No llegó el código de Discord.");
-  }
-
+app.post("/dashboard/:guildId/premium/dm", async (req, res) => {
   try {
-    const tokenRes = await axios.post(
-      "https://discord.com/api/oauth2/token",
-      new URLSearchParams({
-        client_id: process.env.CLIENT_ID,
-        client_secret: process.env.CLIENT_SECRET,
-        grant_type: "authorization_code",
-        code,
-        redirect_uri: process.env.BASE_URL + "/callback"
-      }),
+    const guildId = req.params.guildId;
+    const { userId, dmMessage } = req.body;
+
+    const guild = client.guilds.cache.get(guildId);
+    if (!guild) return res.send("❌ Servidor no encontrado.");
+
+    const member = await guild.members.fetch(userId).catch(() => null);
+    if (!member) return res.send("❌ Usuario no encontrado.");
+
+    await member.send(dmMessage);
+
+    res.redirect(`/dashboard/${guildId}/premium`);
+  } catch (error) {
+    console.log("❌ Error enviando DM premium:", error);
+    res.send("❌ No pude enviar el mensaje privado.");
+  }
+});
+
+app.post("/dashboard/:guildId/premium/command", async (req, res) => {
+  try {
+    const guildId = req.params.guildId;
+
+    const name = String(req.body.commandName || "")
+      .toLowerCase()
+      .replace("/", "")
+      .replace(/[^a-z0-9_-]/g, "");
+
+    const response = req.body.commandResponse || "";
+    const type = req.body.commandType || "normal";
+
+    if (!name || !response) {
+      return res.send("❌ Falta nombre o respuesta.");
+    }
+
+    await CustomCommand.findOneAndUpdate(
+      { guildId, name },
+      { guildId, name, response, type },
+      { upsert: true, new: true }
+    );
+
+    const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
+
+    await rest.post(
+      Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
       {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
+        body: {
+          name,
+          description: `Comando personalizado: ${name}`
         }
       }
     );
 
-    req.session.access_token = tokenRes.data.access_token;
-    res.redirect("/servers");
+    res.redirect(`/dashboard/${guildId}/premium`);
   } catch (error) {
-    console.log(error.response?.data || error.message);
-    res.send("❌ Error iniciando sesión con Discord.");
+    console.log("❌ Error creando comando:", error);
+    res.send("❌ Error creando comando.");
   }
 });
-
-app.get("/servers", async (req, res) => {
-  if (!req.session.access_token) {
-    return res.redirect("/login");
-  }
-
-  try {
-    const userRes = await axios.get("https://discord.com/api/users/@me", {
-      headers: {
-        Authorization: `Bearer ${req.session.access_token}`
-      }
-    });
-
-    const guildsRes = await axios.get("https://discord.com/api/users/@me/guilds", {
-      headers: {
-        Authorization: `Bearer ${req.session.access_token}`
-      }
-    });
-
-    const guilds = guildsRes.data.filter(guild => {
-      const perms = BigInt(guild.permissions);
-      return (perms & 0x8n) === 0x8n || (perms & 0x20n) === 0x20n;
-    });
-
-    res.render("servers", {
-      user: userRes.data,
-      guilds,
-      botGuilds: client.guilds.cache.map(g => g.id)
-    });
-  } catch (error) {
-    console.log(error.response?.data || error.message);
-    res.send("❌ Error cargando servidores.");
-  }
-});
-
-app.get("/dashboard/:guildId/tickets", async (req, res) => {
-  res.redirect(`/dashboard/${req.params.guildId}`);
-});
-
-app.get("/dashboard/:guildId", async (req, res) => {
-  if (!req.session.access_token) {
-    return res.redirect("/login");
-  }
-
-  const guildId = req.params.guildId;
-  const guild = client.guilds.cache.get(guildId);
-
-  if (!guild) {
-    return res.send("❌ El bot no está en este servidor.");
-  }
-
-  let config = await GuildConfig.findOne({ guildId });
-
-  if (!config) {
-    config = await GuildConfig.create({ guildId });
-  }
-
-  const categories = guild.channels.cache
-    .filter(ch => ch.type === ChannelType.GuildCategory)
-    .map(ch => ({
-      id: ch.id,
-      name: ch.name
-    }));
-
-  const textChannels = guild.channels.cache
-    .filter(ch => ch.type === ChannelType.GuildText)
-    .map(ch => ({
-      id: ch.id,
-      name: ch.name
-    }));
-
-  const roles = guild.roles.cache
-    .filter(role => role.name !== "@everyone")
-    .map(role => ({
-      id: role.id,
-      name: role.name
-    }));
-
-  res.render("dashboard", {
-    guild,
-    config,
-    categories,
-    textChannels,
-    roles
-  });
-});
-app.get("/dashboard/:guildId/logs", async (req, res) => {
-  if (!req.session.access_token) {
-    return res.redirect("/login");
-  }
-
-  const guildId = req.params.guildId;
-  const guild = client.guilds.cache.get(guildId);
-
-  if (!guild) {
-    return res.send("❌ El bot no está en este servidor.");
-  }
-
-  const logs = await BotLog.find({ guildId })
-    .sort({ createdAt: -1 })
-    .limit(100);
-
-  const stats = {
-    total: await BotLog.countDocuments({ guildId }),
-    ticketsCreated: await BotLog.countDocuments({ guildId, type: "ticket_created" }),
-    ticketsClosed: await BotLog.countDocuments({ guildId, type: "ticket_closed" }),
-    verifications: await BotLog.countDocuments({ guildId, type: "verification" })
-  };
-let config = await GuildConfig.findOne({ guildId });
-
-if (!config) {
-  config = await GuildConfig.create({ guildId });
-}
-  res.render("logs", {
-    guild,
-  config,
-    logs,
-    stats
-  });
-});
-app.get("/dashboard/:guildId/backup/export", async (req, res) => {
-  const guildId = req.params.guildId;
-
-  const config = await GuildConfig.findOne({ guildId });
-
-  if (!config) {
-    return res.send("❌ No hay configuración para exportar.");
-  }
-
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename=backup-${guildId}.json`
-  );
-
-  res.setHeader("Content-Type", "application/json");
-
-  res.send(JSON.stringify(config, null, 2));
-});
-
-app.get("/dashboard/:guildId/backup/reset", async (req, res) => {
-  const guildId = req.params.guildId;
-
-  await GuildConfig.findOneAndDelete({ guildId });
-  await GuildConfig.create({ guildId });
-
-  res.redirect(`/dashboard/${guildId}/configuration`);
-});
-app.post("/dashboard/:guildId/backup/import", upload.single("backupFile"), async (req, res) => {
-  try {
-    const guildId = req.params.guildId;
-
-    if (!req.file) {
-      return res.send("❌ No subiste ningún archivo.");
-    }
-
-    const jsonText = req.file.buffer.toString("utf8");
-    const backupData = JSON.parse(jsonText);
-
-    delete backupData._id;
-    delete backupData.__v;
-    delete backupData.createdAt;
-    delete backupData.updatedAt;
-
-    backupData.guildId = guildId;
-
-    await GuildConfig.findOneAndUpdate(
-      { guildId },
-      backupData,
-      { upsert: true, new: true }
-    );
-
-    res.redirect(`/dashboard/${guildId}/configuration`);
-  } catch (error) {
-    console.log("❌ Error importando backup:", error);
-    res.status(500).send("❌ Error importando backup.");
-  }
-});
-app.get("/dashboard/:guildId/backup/export", async (req, res) => {
-  const guildId = req.params.guildId;
-
-  const config = await GuildConfig.findOne({ guildId });
-
-  if (!config) {
-    return res.send("❌ No hay configuración.");
-  }
-
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename=backup-${guildId}.json`
-  );
-
-  res.setHeader(
-    "Content-Type",
-    "application/json"
-  );
-
-  res.send(JSON.stringify(config, null, 2));
-});
-
-app.get("/dashboard/:guildId/backup/reset", async (req, res) => {
-  const guildId = req.params.guildId;
-
-  await GuildConfig.findOneAndDelete({ guildId });
-  await GuildConfig.create({ guildId });
-
-  res.redirect(`/dashboard/${guildId}/configuration`);
-});
-
-app.post(
-  "/dashboard/:guildId/backup/import",
-  upload.single("backupFile"),
-  async (req, res) => {
-
-    const guildId = req.params.guildId;
-
-    if (!req.file) {
-      return res.send("❌ No subiste archivo.");
-    }
-
-    const backupData = JSON.parse(
-      req.file.buffer.toString("utf8")
-    );
-
-    delete backupData._id;
-    delete backupData.__v;
-    delete backupData.createdAt;
-    delete backupData.updatedAt;
-
-    backupData.guildId = guildId;
-
-    await GuildConfig.findOneAndUpdate(
-      { guildId },
-      backupData,
-      { upsert: true }
-    );
-
-    res.redirect(`/dashboard/${guildId}/configuration`);
-  }
-);
 app.get("/dashboard/:guildId/configuration", async (req, res) => {
   if (!req.session.access_token) {
     return res.redirect("/login");
