@@ -381,7 +381,6 @@ const uptimeSeconds = process.uptime();
 const days = Math.floor(uptimeSeconds / 86400);
 const hours = Math.floor((uptimeSeconds % 86400) / 3600);
 const minutes = Math.floor((uptimeSeconds % 3600) / 60);
-
 const stats = {
   members: guild.memberCount || 0,
 
@@ -393,14 +392,25 @@ const stats = {
     1024
   ).toFixed(0),
 
-  uptime: `${days}d ${hours}h ${minutes}m`
+  uptime: `${days}d ${hours}h ${minutes}m`,
+
+  logs: await BotLog.countDocuments({ guildId }),
+
+  ticketsCreated: await BotLog.countDocuments({
+    guildId,
+    type: "ticket_created"
+  }),
+
+  ticketsClosed: await BotLog.countDocuments({
+    guildId,
+    type: "ticket_closed"
+  }),
+
+  verifications: await BotLog.countDocuments({
+    guildId,
+    type: "verification"
+  })
 };
-  res.render("stats", {
-    guild,
-    config,
-    stats
-  });
-});
 app.post("/dashboard/:guildId/configuration", async (req, res) => {
   const guildId = req.params.guildId;
 
@@ -903,7 +913,18 @@ const logChannel = guild.channels.cache.get(config.verificationLogsChannelId);
 if (logChannel) {
   await logChannel.send({ embeds: [logEmbed] }).catch(console.error);
 }
-
+await createBotLog({
+  guildId,
+  type: "verification",
+  title: "🛡️ Usuario verificado",
+  description: `Usuario verificado: ${user.username}`,
+  userId: user.id,
+  username: user.username,
+  metadata: {
+    accountAgeDays,
+    risk
+  }
+});
 return res.send(`
 <html>
 <body style="background:#020617;color:white;font-family:Arial;text-align:center;padding-top:100px;">
