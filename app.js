@@ -958,6 +958,42 @@ function getClientIP(req) {
 
   return req.socket.remoteAddress || "";
 }
+app.get("/verify/callback", async (req, res) => {
+  try {
+    const code = req.query.code;
+    const guildId = req.query.state;
+
+    if (!code || !guildId) {
+      return res.send("❌ Faltan datos de verificación.");
+    }
+
+    const config = await GuildConfig.findOne({ guildId });
+
+    if (!config) {
+      return res.send("❌ Este servidor no tiene verificación configurada.");
+    }
+
+    const tokenRes = await axios.post(
+      "https://discord.com/api/oauth2/token",
+      new URLSearchParams({
+        client_id: process.env.CLIENT_ID,
+        client_secret: process.env.CLIENT_SECRET,
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: process.env.BASE_URL + "/verify/callback"
+      }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        }
+      }
+    );
+
+    const userRes = await axios.get("https://discord.com/api/users/@me", {
+      headers: {
+        Authorization: `Bearer ${tokenRes.data.access_token}`
+      }
+    });
 
 app.get("/verify/:guildId", async (req, res) => {
   const guildId = req.params.guildId;
@@ -1000,43 +1036,6 @@ app.get("/verify/:guildId/discord", (req, res) => {
 
   res.redirect(url);
 });
-app.get("/verify/callback", async (req, res) => {
-  try {
-    const code = req.query.code;
-    const guildId = req.query.state;
-
-    if (!code || !guildId) {
-      return res.send("❌ Faltan datos de verificación.");
-    }
-
-    const config = await GuildConfig.findOne({ guildId });
-
-    if (!config) {
-      return res.send("❌ Este servidor no tiene verificación configurada.");
-    }
-
-    const tokenRes = await axios.post(
-      "https://discord.com/api/oauth2/token",
-      new URLSearchParams({
-        client_id: process.env.CLIENT_ID,
-        client_secret: process.env.CLIENT_SECRET,
-        grant_type: "authorization_code",
-        code,
-        redirect_uri: process.env.BASE_URL + "/verify/callback"
-      }),
-      {
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-        }
-      }
-    );
-
-    const userRes = await axios.get("https://discord.com/api/users/@me", {
-      headers: {
-        Authorization: `Bearer ${tokenRes.data.access_token}`
-      }
-    });
-
     const user = userRes.data;
     const guild = client.guilds.cache.get(guildId);
 
