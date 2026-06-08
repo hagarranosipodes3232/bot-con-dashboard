@@ -406,12 +406,11 @@ const stats = {
     guildId,
     type: "ticket_closed"
   }),
+verifications: await BotLog.countDocuments({
+  guildId,
+  type: "verification"
+}),
 
-  verifications: await BotLog.countDocuments({
-    guildId,
-    type: "verification"
-
-  })
 channels: guild.channels.cache.size,
 roles: guild.roles.cache.filter(role => role.name !== "@everyone").size,
 emojis: guild.emojis.cache.size,
@@ -422,7 +421,6 @@ securityAntiNewAccounts: config.securityAntiNewAccounts,
 
 nodeVersion: process.version
 };
-
 res.render("stats", {
   guild,
   config,
