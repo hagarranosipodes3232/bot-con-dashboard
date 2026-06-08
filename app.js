@@ -715,11 +715,7 @@ app.get("/verify/callback", async (req, res) => {
       return res.send("❌ Tenés que estar dentro del servidor para verificarte.");
     }
 
-    if (config.verificationRoleId) {
-      await member.roles.add(config.verificationRoleId).catch(console.error);
-    }
-
-    const ip = getClientIP(req);
+      const ip = getClientIP(req);
 const geo = await axios
 .get(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,regionName,city,isp,as,proxy,hosting,mobile,timezone,query`)
   .then(r => r.data)
@@ -729,6 +725,21 @@ const geo = await axios
 
 const createdAt = new Date(Number((BigInt(user.id) >> 22n) + 1420070400000n));
 const accountAgeDays = Math.floor((Date.now() - createdAt.getTime()) / 86400000);
+if (config.securityAntiNewAccounts && accountAgeDays < 7) {
+  return res.send("❌ Tu cuenta de Discord es demasiado nueva para verificarte.");
+}
+
+if (config.securityAntiProxy && geo?.proxy) {
+  return res.send("❌ No podés verificarte usando proxy.");
+}
+
+if (config.securityAntiVPN && (geo?.proxy || geo?.hosting)) {
+  return res.send("❌ No podés verificarte usando VPN o hosting.");
+}
+
+if (config.verificationRoleId) {
+  await member.roles.add(config.verificationRoleId).catch(console.error);
+}
 
 let risk = "🟢 Bajo";
 const alerts = [];
