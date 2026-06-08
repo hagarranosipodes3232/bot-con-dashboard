@@ -38,69 +38,72 @@
 
 <main class="main">
 
-<div class="page-header">
-  <div class="page-title">
-    <span class="eyebrow">Dashboard Premium</span>
-    <h1>📊 Estadísticas</h1>
-    <p>Información general del servidor y del bot.</p>
-  </div>
-</div>
-
-<div class="stats-grid">
-
-  <div class="stat-card">
-    <div class="stat-icon">👥</div>
-    <span>Miembros</span>
-    <strong><%= stats.members %></strong>
+  <div class="page-header">
+    <div class="page-title">
+      <span class="eyebrow">Dashboard Premium</span>
+      <h1>📊 Estadísticas</h1>
+      <p>Información general del servidor y del bot.</p>
+    </div>
   </div>
 
-  <div class="stat-card">
-    <div class="stat-icon">🤖</div>
-    <span>Bot</span>
-    <strong>Online</strong>
-  </div>
-
-  <div class="stat-card">
-    <div class="stat-icon">🎫</div>
-    <span>Tickets</span>
-    <strong><%= config.ticketsEnabled ? "Activo" : "Desactivado" %></strong>
-  </div>
-
-  <div class="stat-card">
-    <div class="stat-icon">🛡️</div>
-    <span>Verificación</span>
-    <strong><%= config.verificationEnabled ? "Activa" : "Desactivada" %></strong>
-  </div>
-
-</div>
-
-<div class="card">
-  <h2>📈 Resumen</h2>
-
-  <div class="preview-fields">
+  <div class="stats-grid">
 
 ```
-<div>
-  <strong>Servidor</strong><br>
-  <%= guild.name %>
+<div class="stat-card">
+  <div class="stat-icon">👥</div>
+  <span>Miembros</span>
+  <strong><%= stats.members %></strong>
 </div>
 
-<div>
-  <strong>ID</strong><br>
-  <%= guild.id %>
+<div class="stat-card">
+  <div class="stat-icon">🤖</div>
+  <span>Bot</span>
+  <strong>Online</strong>
 </div>
 
-<div>
-  <strong>Miembros</strong><br>
-  <%= stats.members %>
+<div class="stat-card">
+  <div class="stat-icon">🎫</div>
+  <span>Tickets</span>
+  <strong><%= config.ticketsEnabled ? "Activo" : "Desactivado" %></strong>
+</div>
+
+<div class="stat-card">
+  <div class="stat-icon">🛡️</div>
+  <span>Verificación</span>
+  <strong><%= config.verificationEnabled ? "Activa" : "Desactivada" %></strong>
 </div>
 ```
 
   </div>
+
+  <div class="card">
+    <h2>📈 Resumen</h2>
+
+```
+<div class="preview-fields">
+
+  <div>
+    <strong>🖥️ Servidor</strong><br>
+    <%= guild.name %>
+  </div>
+
+  <div>
+    <strong>🆔 ID</strong><br>
+    <%= guild.id %>
+  </div>
+
+  <div>
+    <strong>👥 Miembros</strong><br>
+    <%= stats.members %>
+  </div>
+
 </div>
+```
+
+  </div>
 
 </main>
-</div>
 
+</div>
 </body>
 </html>
