@@ -520,20 +520,30 @@ app.post("/dashboard/:guildId/premium/command", async (req, res) => {
 
     await CustomCommand.findOneAndUpdate(
       { guildId, name },
+      { guildId, name, response, type },
+      { upsert: true, new: true }
+    );
+
+    const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
+
+    await rest.post(
+      Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
       {
-        guildId,
-        name,
-        response,
-        type
-      },
-      {
-        upsert: true,
-        new: true
+        body: {
+          name,
+          description: `Comando personalizado: ${name}`
+        }
       }
     );
 
-    res.redirect(`/dashboard/${guildId}/premium`);
+    await createBotLog({
+      guildId,
+      type: "premium_command",
+      title: "⚡ Comando personalizado creado",
+      description: `Comando creado: /${name}`
+    });
 
+    res.redirect(`/dashboard/${guildId}/premium`);
   } catch (error) {
     console.log("❌ Error creando comando:", error);
     res.send("❌ Error creando comando.");
@@ -1162,6 +1172,28 @@ async function sendLog(guild, config, embed, files = []) {
 
       client.on("interactionCreate", async interaction => {
   try {
+if (interaction.isChatInputCommand()) {
+  const customCommand = await CustomCommand.findOne({
+    guildId: interaction.guild.id,
+    name: interaction.commandName
+  });
+
+  if (!customCommand) return;
+
+  if (customCommand.type === "embed") {
+    const embed = new EmbedBuilder()
+      .setTitle(`/${customCommand.name}`)
+      .setDescription(customCommand.response)
+      .setColor("#7c3aed")
+      .setTimestamp();
+
+    return interaction.reply({ embeds: [embed] });
+  }
+
+  return interaction.reply({
+    content: customCommand.response
+  });
+}
     if (
       interaction.isButton() &&
       interaction.customId.startsWith("open_ticket_")
