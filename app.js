@@ -358,6 +358,34 @@ app.get("/dashboard/:guildId/configuration", async (req, res) => {
     config
   });
 });
+app.get("/dashboard/:guildId/stats", async (req, res) => {
+  if (!req.session.access_token) {
+    return res.redirect("/login");
+  }
+
+  const guildId = req.params.guildId;
+  const guild = client.guilds.cache.get(guildId);
+
+  if (!guild) {
+    return res.send("❌ El bot no está en este servidor.");
+  }
+
+  let config = await GuildConfig.findOne({ guildId });
+
+  if (!config) {
+    config = await GuildConfig.create({ guildId });
+  }
+
+  const stats = {
+    members: guild.memberCount || 0
+  };
+
+  res.render("stats", {
+    guild,
+    config,
+    stats
+  });
+});
 app.post("/dashboard/:guildId/configuration", async (req, res) => {
   const guildId = req.params.guildId;
 
