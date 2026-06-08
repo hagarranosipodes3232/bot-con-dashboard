@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Premium</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <div>
+        <div class="logo-title">012 Bot</div>
+        <div class="logo-status"><span class="status-dot"></span> Online</div>
+      </div>
+    </div>
+
+    <div class="menu">
+      <a href="/servers">🏠 Dashboard</a>
+      <a href="/dashboard/<%= guild.id %>/tickets">🎫 Tickets</a>
+      <a href="/dashboard/<%= guild.id %>/verification">🛡️ Verificación</a>
+      <a href="/dashboard/<%= guild.id %>/stats">📊 Estadísticas</a>
+      <a href="/dashboard/<%= guild.id %>/logs">📜 Logs</a>
+      <a href="/dashboard/<%= guild.id %>/configuration">⚙️ Configuración</a>
+      <a class="active" href="/dashboard/<%= guild.id %>/premium">👑 Premium</a>
+    </div>
+
+    <div class="sidebar-footer">
+      <span>Servidor actual</span>
+      <strong><%= guild.name %></strong>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="page-header">
+      <div class="page-title">
+        <span class="eyebrow">Dashboard Premium</span>
+        <h1>👑 Premium</h1>
+        <p>Herramientas avanzadas para embeds, comandos personalizados y mensajes privados.</p>
+      </div>
+
+      <div class="header-badge">
+        <span class="status-dot"></span>
+        Módulos premium
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+
+      <section>
+
+        <form method="POST" action="/dashboard/<%= guild.id %>/premium/embed">
+          <div class="card">
+            <h2>🎨 Crear embed personalizado</h2>
+            <p class="muted-text">Diseñá un embed y envialo a un canal del servidor.</p>
+
+            <label>Canal</label>
+            <select class="input" name="channelId" required>
+              <option value="">Seleccionar canal</option>
+              <% textChannels.forEach(channel => { %>
+                <option value="<%= channel.id %>"># <%= channel.name %></option>
+              <% }) %>
+            </select>
+
+            <label>Título</label>
+            <input class="input" name="embedTitle" placeholder="Ej: Bienvenidos al servidor">
+
+            <label>Descripción</label>
+            <textarea class="textarea" name="embedDescription" placeholder="Escribí el mensaje del embed..."></textarea>
+
+            <label>Color del embed</label>
+            <input class="input" type="color" name="embedColor" value="#7c3aed">
+
+            <label>Imagen grande URL</label>
+            <input class="input" name="embedImage" placeholder="https://...">
+
+            <label>Thumbnail URL</label>
+            <input class="input" name="embedThumbnail" placeholder="https://...">
+
+            <label>Footer</label>
+            <input class="input" name="embedFooter" placeholder="Ej: 012 Bot Premium">
+
+            <div class="actions">
+              <button class="btn green" type="submit">🚀 Enviar embed</button>
+            </div>
+          </div>
+        </form>
+
+        <form method="POST" action="/dashboard/<%= guild.id %>/premium/command">
+          <div class="card">
+            <h2>⚡ Crear comando personalizado</h2>
+            <p class="muted-text">Creá comandos simples como /reglas, /tienda, /staff o /redes.</p>
+
+            <label>Nombre del comando</label>
+            <input class="input" name="commandName" placeholder="reglas" required>
+
+            <label>Respuesta del comando</label>
+            <textarea class="textarea" name="commandResponse" placeholder="Respuesta que enviará el bot..." required></textarea>
+
+            <label>Tipo de respuesta</label>
+            <select class="input" name="commandType">
+              <option value="normal">Mensaje normal</option>
+              <option value="embed">Embed premium</option>
+            </select>
+
+            <div class="actions">
+              <button class="btn green" type="submit">⚡ Guardar comando</button>
+            </div>
+          </div>
+        </form>
+
+        <form method="POST" action="/dashboard/<%= guild.id %>/premium/dm">
+          <div class="card">
+            <h2>📩 Enviar mensaje privado</h2>
+            <p class="muted-text">Mandá un mensaje privado a un miembro del servidor.</p>
+
+            <label>Usuario</label>
+            <select class="input" name="userId" required>
+              <option value="">Seleccionar usuario</option>
+              <% members.forEach(member => { %>
+                <option value="<%= member.id %>"><%= member.username %></option>
+              <% }) %>
+            </select>
+
+            <label>Mensaje privado</label>
+            <textarea class="textarea" name="dmMessage" placeholder="Escribí el mensaje privado..." required></textarea>
+
+            <div class="actions">
+              <button class="btn green" type="submit">📨 Enviar privado</button>
+            </div>
+          </div>
+        </form>
+
+      </section>
+
+      <aside class="preview-box">
+        <h2>👀 Vista Premium</h2>
+
+        <div class="discord-preview">
+          <div class="preview-author">
+            🤖 012 Bot <span>APP</span>
+          </div>
+
+          <div class="preview-embed">
+            <h3>👑 Panel Premium</h3>
+            <p>
+Servidor: <%= guild.name %>
+
+Desde acá podés crear embeds, comandos personalizados y mensajes privados desde el dashboard.
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🚀 Funciones</h2>
+          <p class="muted-text">
+            🎨 Embeds personalizados<br>
+            ⚡ Comandos custom<br>
+            📩 Mensajes privados<br>
+            🖼️ Imágenes y thumbnails<br>
+            🎭 Personalización avanzada
+          </p>
+        </div>
+      </aside>
+
+    </div>
+
+  </main>
+</div>
+</body>
+</html>
