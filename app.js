@@ -411,6 +411,13 @@ const stats = {
     type: "verification"
   })
 };
+
+res.render("stats", {
+  guild,
+  config,
+  stats
+});
+});
 app.post("/dashboard/:guildId/configuration", async (req, res) => {
   const guildId = req.params.guildId;
 
