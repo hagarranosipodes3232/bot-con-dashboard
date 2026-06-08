@@ -134,6 +134,82 @@
             </div>
           </div>
         </form>
+<div class="card">
+  <h2>👋 Sistema de Bienvenida</h2>
+
+  <form method="POST" action="/dashboard/<%= guild.id %>/premium/welcome">
+
+    <label>
+      <input type="checkbox" name="welcomeEnabled"
+      <%= config.welcomeEnabled ? "checked" : "" %>>
+      Activar bienvenida
+    </label>
+
+    <label>Canal de bienvenida</label>
+    <select class="input" name="welcomeChannelId">
+      <option value="">Seleccionar canal</option>
+
+      <% textChannels.forEach(channel => { %>
+        <option
+          value="<%= channel.id %>"
+          <%= config.welcomeChannelId === channel.id ? "selected" : "" %>>
+          # <%= channel.name %>
+        </option>
+      <% }) %>
+    </select>
+
+    <label>Rol automático</label>
+    <select class="input" name="welcomeRoleId">
+      <option value="">Sin rol</option>
+
+      <% roles.forEach(role => { %>
+        <option
+          value="<%= role.id %>"
+          <%= config.welcomeRoleId === role.id ? "selected" : "" %>>
+          <%= role.name %>
+        </option>
+      <% }) %>
+    </select>
+
+    <label>Mensaje de bienvenida</label>
+
+    <textarea
+      class="input"
+      name="welcomeMessage"
+      rows="4"><%= config.welcomeMessage || "" %></textarea>
+
+    <label>Imagen URL</label>
+
+    <input
+      class="input"
+      type="text"
+      name="welcomeImageUrl"
+      value="<%= config.welcomeImageUrl || "" %>">
+
+    <label>
+      <input type="checkbox"
+      name="welcomeDmEnabled"
+      <%= config.welcomeDmEnabled ? "checked" : "" %>>
+
+      Enviar DM privado
+    </label>
+
+    <label>
+      <input type="checkbox"
+      name="welcomeShowMemberCount"
+      <%= config.welcomeShowMemberCount ? "checked" : "" %>>
+
+      Mostrar contador de miembros
+    </label>
+
+    <br><br>
+
+    <button class="btn green">
+      👋 Guardar Bienvenida
+    </button>
+
+  </form>
+</div>
 
       </section>
 

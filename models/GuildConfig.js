@@ -320,8 +320,51 @@ dashboardParticles: {
 dashboardGlass: {
   type: Boolean,
   default: true
-}
+},
+welcomeEnabled: {
+  type: Boolean,
+  default: false
+},
 
+welcomeChannelId: {
+  type: String,
+  default: ""
+},
+
+welcomeMessage: {
+  type: String,
+  default: "👋 Bienvenido {user} a {server}"
+},
+
+welcomeRoleId: {
+  type: String,
+  default: ""
+},
+
+welcomeEmbedEnabled: {
+  type: Boolean,
+  default: true
+},
+
+welcomeImageUrl: {
+  type: String,
+  default: ""
+},
+
+welcomeDmEnabled: {
+  type: Boolean,
+  default: false
+},
+
+welcomeDmMessage: {
+  type: String,
+  default: "👋 Bienvenido a {server}, {user}!"
+},
+
+welcomeShowMemberCount: {
+  type: Boolean,
+  default: true
+}
 }, {
   timestamps: true
 });

@@ -34,10 +34,11 @@ const {
 const app = express();
 
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds
-  ]
-});
+intents: [
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildMembers
+]
+ });
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB conectado"))
@@ -445,12 +446,20 @@ app.get("/dashboard/:guildId/premium", async (req, res) => {
     }))
     .slice(0, 100);
 
-  res.render("premium", {
-    guild,
-    config,
-    textChannels,
-    members
-  });
+const roles = guild.roles.cache
+  .filter(role => role.name !== "@everyone")
+  .map(role => ({
+    id: role.id,
+    name: role.name
+  }));
+
+res.render("premium", {
+  guild,
+  config,
+  textChannels,
+  members,
+  roles
+});
 });
 
 app.post("/dashboard/:guildId/premium/embed", async (req, res) => {
@@ -500,6 +509,32 @@ app.post("/dashboard/:guildId/premium/embed", async (req, res) => {
   } catch (error) {
     console.log("❌ Error enviando embed premium:", error);
     res.send("❌ Error enviando embed.");
+  }
+});
+app.post("/dashboard/:guildId/premium/welcome", async (req, res) => {
+  try {
+    const guildId = req.params.guildId;
+
+    await GuildConfig.findOneAndUpdate(
+      { guildId },
+      {
+        welcomeEnabled: req.body.welcomeEnabled === "on",
+        welcomeChannelId: req.body.welcomeChannelId || "",
+        welcomeRoleId: req.body.welcomeRoleId || "",
+        welcomeMessage: req.body.welcomeMessage || "",
+        welcomeImageUrl: req.body.welcomeImageUrl || "",
+        welcomeDmEnabled: req.body.welcomeDmEnabled === "on",
+        welcomeShowMemberCount: req.body.welcomeShowMemberCount === "on"
+      },
+      {
+        upsert: true
+      }
+    );
+
+    res.redirect(`/dashboard/${guildId}/premium`);
+  } catch (error) {
+    console.log("❌ Error guardando bienvenida:", error);
+    res.send("❌ Error guardando bienvenida.");
   }
 });
 app.post("/dashboard/:guildId/premium/command", async (req, res) => {
@@ -1590,8 +1625,76 @@ await createBotLog({
     }
   }
 });
+client.on("guildMemberAdd", async member => {
+  try {
+    const config = await GuildConfig.findOne({
+      guildId: member.guild.id
+    });
 
+    if (!config || !config.welcomeEnabled) return;
+
+    if (config.welcomeRoleId) {
+      await member.roles.add(config.welcomeRoleId).catch(console.error);
+    }
+
+    const welcomeText = String(config.welcomeMessage || "👋 Bienvenido {user} a {server}")
+      .replaceAll("{user}", `${member}`)
+      .replaceAll("{user.username}", member.user.username)
+      .replaceAll("{server}", member.guild.name)
+      .replaceAll("{member.count}", member.guild.memberCount);
+
+    const channel = member.guild.channels.cache.get(config.welcomeChannelId);
+
+    if (channel) {
+      const embed = new EmbedBuilder()
+        .setTitle("👋 Nueva bienvenida")
+        .setDescription(welcomeText)
+        .setColor("#7c3aed")
+        .setThumbnail(member.user.displayAvatarURL())
+        .setTimestamp();
+
+      if (config.welcomeShowMemberCount) {
+        embed.addFields({
+          name: "👥 Miembros",
+          value: `${member.guild.memberCount}`,
+          inline: true
+        });
+      }
+
+      if (config.welcomeImageUrl) {
+        embed.setImage(config.welcomeImageUrl);
+      }
+
+      await channel.send({
+        content: `${member}`,
+        embeds: [embed]
+      });
+    }
+
+    if (config.welcomeDmEnabled) {
+      const dmText = String(config.welcomeDmMessage || "👋 Bienvenido a {server}, {user}!")
+        .replaceAll("{user}", member.user.username)
+        .replaceAll("{server}", member.guild.name)
+        .replaceAll("{member.count}", member.guild.memberCount);
+
+      await member.send(dmText).catch(() => {});
+    }
+
+    await createBotLog({
+      guildId: member.guild.id,
+      type: "welcome",
+      title: "👋 Usuario bienvenido",
+      description: `${member.user.username} entró al servidor`,
+      userId: member.id,
+      username: member.user.username
+    });
+
+  } catch (error) {
+    console.log("❌ Error en bienvenida:", error);
+  }
+});
 client.once("clientReady", () => {
+
   console.log(`🤖 Bot conectado como ${client.user.tag}`);
 });
 
