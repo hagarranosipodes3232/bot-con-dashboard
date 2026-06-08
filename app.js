@@ -382,6 +382,7 @@ const days = Math.floor(uptimeSeconds / 86400);
 const hours = Math.floor((uptimeSeconds % 86400) / 3600);
 const minutes = Math.floor((uptimeSeconds % 3600) / 60);
 const stats = {
+
   members: guild.memberCount || 0,
 
   ping: client.ws.ping,
@@ -409,7 +410,17 @@ const stats = {
   verifications: await BotLog.countDocuments({
     guildId,
     type: "verification"
+
   })
+channels: guild.channels.cache.size,
+roles: guild.roles.cache.filter(role => role.name !== "@everyone").size,
+emojis: guild.emojis.cache.size,
+
+securityAntiVPN: config.securityAntiVPN,
+securityAntiProxy: config.securityAntiProxy,
+securityAntiNewAccounts: config.securityAntiNewAccounts,
+
+nodeVersion: process.version
 };
 
 res.render("stats", {

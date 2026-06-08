@@ -1,148 +1,298 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Estadísticas</title>
-<link rel="stylesheet" href="/css/style.css">
+  <meta charset="UTF-8">
+  <title>Estadísticas</title>
+  <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
 
+<body>
 <div class="layout">
 
-<aside class="sidebar">
-  <div class="logo">
-    <div class="logo-icon">🤖</div>
-    <div>
-      <div class="logo-title">012 Bot</div>
-      <div class="logo-status">
-        <span class="status-dot"></span> Online
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🤖</div>
+      <div>
+        <div class="logo-title">012 Bot</div>
+        <div class="logo-status"><span class="status-dot"></span> Online</div>
       </div>
     </div>
-  </div>
 
-  <div class="menu">
-    <a href="/servers">🏠 Dashboard</a>
-    <a href="/dashboard/<%= guild.id %>/tickets">🎫 Tickets</a>
-    <a href="/dashboard/<%= guild.id %>/verification">🛡️ Verificación</a>
-    <a class="active" href="/dashboard/<%= guild.id %>/stats">📊 Estadísticas</a>
-    <a href="/dashboard/<%= guild.id %>/logs">📜 Logs</a>
-    <a href="/dashboard/<%= guild.id %>/configuration">⚙️ Configuración</a>
-  </div>
-
-  <div class="sidebar-footer">
-    <span>Servidor actual</span>
-    <strong><%= guild.name %></strong>
-  </div>
-</aside>
-
-<main class="main">
-
-  <div class="page-header">
-    <div class="page-title">
-      <span class="eyebrow">Dashboard Premium</span>
-      <h1>📊 Estadísticas</h1>
-      <p>Información general del servidor y del bot.</p>
+    <div class="menu">
+      <a href="/servers">🏠 Dashboard</a>
+      <a href="/dashboard/<%= guild.id %>/tickets">🎫 Tickets</a>
+      <a href="/dashboard/<%= guild.id %>/verification">🛡️ Verificación</a>
+      <a class="active" href="/dashboard/<%= guild.id %>/stats">📊 Estadísticas</a>
+      <a href="/dashboard/<%= guild.id %>/logs">📜 Logs</a>
+      <a href="/dashboard/<%= guild.id %>/configuration">⚙️ Configuración</a>
     </div>
-  </div>
 
-  <div class="stats-grid">
-<div class="stat-card">
-  <div class="stat-icon">📜</div>
-  <span>Logs</span>
-  <strong><%= stats.logs %></strong>
-</div>
+    <div class="sidebar-footer">
+      <span>Servidor actual</span>
+      <strong><%= guild.name %></strong>
+    </div>
+  </aside>
 
-<div class="stat-card">
-  <div class="stat-icon">🎫</div>
-  <span>Tickets creados</span>
-  <strong><%= stats.ticketsCreated %></strong>
-</div>
+  <main class="main">
 
-<div class="stat-card">
-  <div class="stat-icon">🔒</div>
-  <span>Tickets cerrados</span>
-  <strong><%= stats.ticketsClosed %></strong>
-</div>
+    <div class="page-header">
+      <div class="page-title">
+        <span class="eyebrow">Dashboard Premium</span>
+        <h1>📊 Estadísticas</h1>
+        <p>Información avanzada del servidor, bot, tickets, seguridad y sistema.</p>
+      </div>
 
-<div class="stat-card">
-  <div class="stat-icon">🛡️</div>
-  <span>Verificaciones</span>
-  <strong><%= stats.verifications %></strong>
-</div>
-<div class="stat-card">
-  <div class="stat-icon">⚡</div>
-  <span>Ping</span>
-  <strong><%= stats.ping %> ms</strong>
-</div>
+      <div class="header-badge">
+        <span class="status-dot"></span>
+        Estadísticas activas
+      </div>
+    </div>
 
-<div class="stat-card">
-  <div class="stat-icon">💾</div>
-  <span>RAM</span>
-  <strong><%= stats.ram %> MB</strong>
-</div>
+    <div class="stats-grid">
 
-<div class="stat-card">
-  <div class="stat-icon">⏱️</div>
-  <span>Uptime</span>
-  <strong><%= stats.uptime %></strong>
-</div>
+      <div class="stat-card">
+        <div class="stat-icon">⚡</div>
+        <span>Ping</span>
+        <strong><%= stats.ping %> ms</strong>
+      </div>
 
+      <div class="stat-card">
+        <div class="stat-icon">💾</div>
+        <span>RAM</span>
+        <strong><%= stats.ram %> MB</strong>
+      </div>
 
-<div class="stat-card">
-  <div class="stat-icon">👥</div>
-  <span>Miembros</span>
-  <strong><%= stats.members %></strong>
-</div>
+      <div class="stat-card">
+        <div class="stat-icon">⏱️</div>
+        <span>Uptime</span>
+        <strong><%= stats.uptime %></strong>
+      </div>
 
-<div class="stat-card">
-  <div class="stat-icon">🤖</div>
-  <span>Bot</span>
-  <strong>Online</strong>
-</div>
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <span>Miembros</span>
+        <strong><%= stats.members %></strong>
+      </div>
 
-<div class="stat-card">
-  <div class="stat-icon">🎫</div>
-  <span>Tickets</span>
-  <strong><%= config.ticketsEnabled ? "Activo" : "Desactivado" %></strong>
-</div>
+      <div class="stat-card">
+        <div class="stat-icon">📜</div>
+        <span>Logs</span>
+        <strong><%= stats.logs %></strong>
+      </div>
 
-<div class="stat-card">
-  <div class="stat-icon">🛡️</div>
-  <span>Verificación</span>
-  <strong><%= config.verificationEnabled ? "Activa" : "Desactivada" %></strong>
-</div>
+      <div class="stat-card">
+        <div class="stat-icon">🎫</div>
+        <span>Tickets creados</span>
+        <strong><%= stats.ticketsCreated %></strong>
+      </div>
 
+      <div class="stat-card">
+        <div class="stat-icon">🔒</div>
+        <span>Tickets cerrados</span>
+        <strong><%= stats.ticketsClosed %></strong>
+      </div>
 
-  </div>
+      <div class="stat-card">
+        <div class="stat-icon">🛡️</div>
+        <span>Verificaciones</span>
+        <strong><%= stats.verifications %></strong>
+      </div>
 
-  <div class="card">
-    <h2>📈 Resumen</h2>
+      <div class="stat-card">
+        <div class="stat-icon">📁</div>
+        <span>Canales</span>
+        <strong><%= stats.channels %></strong>
+      </div>
 
+      <div class="stat-card">
+        <div class="stat-icon">🎭</div>
+        <span>Roles</span>
+        <strong><%= stats.roles %></strong>
+      </div>
 
-<div class="preview-fields">
+      <div class="stat-card">
+        <div class="stat-icon">😀</div>
+        <span>Emojis</span>
+        <strong><%= stats.emojis %></strong>
+      </div>
 
-  <div>
-    <strong>🖥️ Servidor</strong><br>
-    <%= guild.name %>
-  </div>
+      <div class="stat-card">
+        <div class="stat-icon">🤖</div>
+        <span>Bot</span>
+        <strong>Online</strong>
+      </div>
 
-  <div>
-    <strong>🆔 ID</strong><br>
-    <%= guild.id %>
-  </div>
+    </div>
 
-  <div>
-    <strong>👥 Miembros</strong><br>
-    <%= stats.members %>
-  </div>
+    <div class="dashboard-grid">
 
-</div>
+      <section>
 
-  </div>
+        <div class="card">
+          <h2>📈 Resumen del servidor</h2>
 
-</main>
+          <div class="preview-fields">
+            <div>
+              <strong>🖥️ Servidor</strong><br>
+              <%= guild.name %>
+            </div>
 
+            <div>
+              <strong>🆔 ID</strong><br>
+              <%= guild.id %>
+            </div>
+
+            <div>
+              <strong>👥 Miembros</strong><br>
+              <%= stats.members %>
+            </div>
+
+            <div>
+              <strong>📁 Canales</strong><br>
+              <%= stats.channels %>
+            </div>
+
+            <div>
+              <strong>🎭 Roles</strong><br>
+              <%= stats.roles %>
+            </div>
+
+            <div>
+              <strong>😀 Emojis</strong><br>
+              <%= stats.emojis %>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🖥️ Sistema</h2>
+
+          <div class="preview-fields">
+            <div>
+              <strong>⚡ Ping</strong><br>
+              <%= stats.ping %> ms
+            </div>
+
+            <div>
+              <strong>💾 RAM usada</strong><br>
+              <%= stats.ram %> MB
+            </div>
+
+            <div>
+              <strong>⏱️ Uptime</strong><br>
+              <%= stats.uptime %>
+            </div>
+
+            <div>
+              <strong>🟢 Estado</strong><br>
+              Online
+            </div>
+
+            <div>
+              <strong>🧩 Node.js</strong><br>
+              <%= stats.nodeVersion %>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🎫 Actividad</h2>
+
+          <div class="preview-fields">
+            <div>
+              <strong>📜 Logs</strong><br>
+              <%= stats.logs %>
+            </div>
+
+            <div>
+              <strong>🎫 Tickets creados</strong><br>
+              <%= stats.ticketsCreated %>
+            </div>
+
+            <div>
+              <strong>🔒 Tickets cerrados</strong><br>
+              <%= stats.ticketsClosed %>
+            </div>
+
+            <div>
+              <strong>🛡️ Verificaciones</strong><br>
+              <%= stats.verifications %>
+            </div>
+
+            <div>
+              <strong>🎟️ Sistema de tickets</strong><br>
+              <%= config.ticketsEnabled ? "✅ Activo" : "❌ Desactivado" %>
+            </div>
+
+            <div>
+              <strong>✅ Sistema de verificación</strong><br>
+              <%= config.verificationEnabled ? "✅ Activo" : "❌ Desactivado" %>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🔒 Seguridad</h2>
+
+          <div class="preview-fields">
+            <div>
+              <strong>Anti VPN</strong><br>
+              <%= stats.securityAntiVPN ? "✅ Activado" : "❌ Desactivado" %>
+            </div>
+
+            <div>
+              <strong>Anti Proxy</strong><br>
+              <%= stats.securityAntiProxy ? "✅ Activado" : "❌ Desactivado" %>
+            </div>
+
+            <div>
+              <strong>Anti cuentas nuevas</strong><br>
+              <%= stats.securityAntiNewAccounts ? "✅ Activado" : "❌ Desactivado" %>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <aside class="preview-box">
+        <h2>👀 Vista rápida</h2>
+
+        <div class="discord-preview">
+          <div class="preview-author">
+            🤖 012 Bot <span>APP</span>
+          </div>
+
+          <div class="preview-embed">
+            <h3>📊 Estado del dashboard</h3>
+            <p>
+Servidor: <%= guild.name %>
+
+Bot online.
+Ping: <%= stats.ping %> ms
+RAM: <%= stats.ram %> MB
+Uptime: <%= stats.uptime %>
+
+Tickets creados: <%= stats.ticketsCreated %>
+Tickets cerrados: <%= stats.ticketsClosed %>
+Verificaciones: <%= stats.verifications %>
+            </p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🚀 Salud general</h2>
+          <p class="muted-text">
+            🟢 Bot online<br>
+            🟢 MongoDB conectado<br>
+            🟢 Dashboard activo<br>
+            🟢 Estadísticas funcionando
+          </p>
+        </div>
+      </aside>
+
+    </div>
+
+  </main>
 </div>
 </body>
 </html>
