@@ -11,6 +11,7 @@ const upload = multer({
 const discordTranscripts = require("discord-html-transcripts");
 
 const GuildConfig = require("./models/GuildConfig");
+const CustomCommand = require("./models/CustomCommand");
 const BotLog = require("./models/BotLog");
 
 const {
@@ -24,7 +25,10 @@ const {
   PermissionsBitField,
   ModalBuilder,
   TextInputBuilder,
-  TextInputStyle
+  TextInputStyle,
+  REST,
+  Routes,
+  SlashCommandBuilder
 } = require("discord.js");
 
 const app = express();
@@ -496,6 +500,43 @@ app.post("/dashboard/:guildId/premium/embed", async (req, res) => {
   } catch (error) {
     console.log("❌ Error enviando embed premium:", error);
     res.send("❌ Error enviando embed.");
+  }
+});
+app.post("/dashboard/:guildId/premium/command", async (req, res) => {
+  try {
+    const guildId = req.params.guildId;
+
+    const name = String(req.body.commandName || "")
+      .toLowerCase()
+      .replace("/", "")
+      .replace(/[^a-z0-9_-]/g, "");
+
+    const response = req.body.commandResponse || "";
+    const type = req.body.commandType || "normal";
+
+    if (!name || !response) {
+      return res.send("❌ Falta nombre o respuesta.");
+    }
+
+    await CustomCommand.findOneAndUpdate(
+      { guildId, name },
+      {
+        guildId,
+        name,
+        response,
+        type
+      },
+      {
+        upsert: true,
+        new: true
+      }
+    );
+
+    res.redirect(`/dashboard/${guildId}/premium`);
+
+  } catch (error) {
+    console.log("❌ Error creando comando:", error);
+    res.send("❌ Error creando comando.");
   }
 });
 app.post("/dashboard/:guildId/configuration", async (req, res) => {
