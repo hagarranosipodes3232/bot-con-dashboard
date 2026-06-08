@@ -438,13 +438,15 @@ app.get("/dashboard/:guildId/premium", async (req, res) => {
       name: ch.name
     }));
 
-  const members = guild.members.cache
-    .filter(m => !m.user.bot)
-    .map(m => ({
-      id: m.id,
-      username: m.user.username
-    }))
-    .slice(0, 100);
+ await guild.members.fetch();
+
+const members = guild.members.cache
+  .filter(m => !m.user.bot)
+  .map(m => ({
+    id: m.id,
+    username: m.user.username
+  }))
+  .slice(0, 100);
 
 const roles = guild.roles.cache
   .filter(role => role.name !== "@everyone")
