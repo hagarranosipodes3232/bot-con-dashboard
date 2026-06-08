@@ -359,6 +359,37 @@ app.get("/dashboard/:guildId/configuration", async (req, res) => {
   });
 });
 app.get("/dashboard/:guildId/stats", async (req, res) => {
+app.get("/dashboard/:guildId/premium", async (req, res) => {
+  if (!req.session.access_token) {
+    return res.redirect("/login");
+  }
+
+  const guildId = req.params.guildId;
+  const guild = client.guilds.cache.get(guildId);
+
+  if (!guild) {
+    return res.send("❌ El bot no está en este servidor.");
+  }
+
+  let config = await GuildConfig.findOne({ guildId });
+  if (!config) config = await GuildConfig.create({ guildId });
+
+  const textChannels = guild.channels.cache
+    .filter(ch => ch.type === ChannelType.GuildText)
+    .map(ch => ({ id: ch.id, name: ch.name }));
+
+  const members = guild.members.cache
+    .filter(m => !m.user.bot)
+    .map(m => ({ id: m.id, username: m.user.username }))
+    .slice(0, 100);
+
+  res.render("premium", {
+    guild,
+    config,
+    textChannels,
+    members
+  });
+});
   if (!req.session.access_token) {
     return res.redirect("/login");
   }
@@ -426,6 +457,46 @@ res.render("stats", {
   config,
   stats
 });
+});
+app.get("/dashboard/:guildId/premium", async (req, res) => {
+  if (!req.session.access_token) {
+    return res.redirect("/login");
+  }
+
+  const guildId = req.params.guildId;
+  const guild = client.guilds.cache.get(guildId);
+
+  if (!guild) {
+    return res.send("❌ El bot no está en este servidor.");
+  }
+
+  let config = await GuildConfig.findOne({ guildId });
+
+  if (!config) {
+    config = await GuildConfig.create({ guildId });
+  }
+
+  const textChannels = guild.channels.cache
+    .filter(ch => ch.type === ChannelType.GuildText)
+    .map(ch => ({
+      id: ch.id,
+      name: ch.name
+    }));
+
+  const members = guild.members.cache
+    .filter(m => !m.user.bot)
+    .map(m => ({
+      id: m.id,
+      username: m.user.username
+    }))
+    .slice(0, 100);
+
+  res.render("premium", {
+    guild,
+    config,
+    textChannels,
+    members
+  });
 });
 app.post("/dashboard/:guildId/configuration", async (req, res) => {
   const guildId = req.params.guildId;
