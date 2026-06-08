@@ -359,7 +359,6 @@ app.get("/dashboard/:guildId/configuration", async (req, res) => {
   });
 });
 app.get("/dashboard/:guildId/stats", async (req, res) => {
-app.get("/dashboard/:guildId/premium", async (req, res) => {
   if (!req.session.access_token) {
     return res.redirect("/login");
   }
@@ -372,92 +371,44 @@ app.get("/dashboard/:guildId/premium", async (req, res) => {
   }
 
   let config = await GuildConfig.findOne({ guildId });
-  if (!config) config = await GuildConfig.create({ guildId });
-
-  const textChannels = guild.channels.cache
-    .filter(ch => ch.type === ChannelType.GuildText)
-    .map(ch => ({ id: ch.id, name: ch.name }));
-
-  const members = guild.members.cache
-    .filter(m => !m.user.bot)
-    .map(m => ({ id: m.id, username: m.user.username }))
-    .slice(0, 100);
-
-  res.render("premium", {
-    guild,
-    config,
-    textChannels,
-    members
-  });
-});
-  if (!req.session.access_token) {
-    return res.redirect("/login");
-  }
-
-  const guildId = req.params.guildId;
-  const guild = client.guilds.cache.get(guildId);
-
-  if (!guild) {
-    return res.send("❌ El bot no está en este servidor.");
-  }
-
-  let config = await GuildConfig.findOne({ guildId });
-
   if (!config) {
     config = await GuildConfig.create({ guildId });
   }
 
-const uptimeSeconds = process.uptime();
+  const uptimeSeconds = process.uptime();
+  const days = Math.floor(uptimeSeconds / 86400);
+  const hours = Math.floor((uptimeSeconds % 86400) / 3600);
+  const minutes = Math.floor((uptimeSeconds % 3600) / 60);
 
-const days = Math.floor(uptimeSeconds / 86400);
-const hours = Math.floor((uptimeSeconds % 86400) / 3600);
-const minutes = Math.floor((uptimeSeconds % 3600) / 60);
-const stats = {
+  const stats = {
+    members: guild.memberCount || 0,
+    ping: client.ws.ping,
+    ram: (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(0),
+    uptime: `${days}d ${hours}h ${minutes}m`,
 
-  members: guild.memberCount || 0,
+    logs: await BotLog.countDocuments({ guildId }),
+    ticketsCreated: await BotLog.countDocuments({ guildId, type: "ticket_created" }),
+    ticketsClosed: await BotLog.countDocuments({ guildId, type: "ticket_closed" }),
+    verifications: await BotLog.countDocuments({ guildId, type: "verification" }),
 
-  ping: client.ws.ping,
+    channels: guild.channels.cache.size,
+    roles: guild.roles.cache.filter(role => role.name !== "@everyone").size,
+    emojis: guild.emojis.cache.size,
 
-  ram: (
-    process.memoryUsage().heapUsed /
-    1024 /
-    1024
-  ).toFixed(0),
+    securityAntiVPN: config.securityAntiVPN,
+    securityAntiProxy: config.securityAntiProxy,
+    securityAntiNewAccounts: config.securityAntiNewAccounts,
 
-  uptime: `${days}d ${hours}h ${minutes}m`,
+    nodeVersion: process.version
+  };
 
-  logs: await BotLog.countDocuments({ guildId }),
-
-  ticketsCreated: await BotLog.countDocuments({
-    guildId,
-    type: "ticket_created"
-  }),
-
-  ticketsClosed: await BotLog.countDocuments({
-    guildId,
-    type: "ticket_closed"
-  }),
-verifications: await BotLog.countDocuments({
-  guildId,
-  type: "verification"
-}),
-
-channels: guild.channels.cache.size,
-roles: guild.roles.cache.filter(role => role.name !== "@everyone").size,
-emojis: guild.emojis.cache.size,
-
-securityAntiVPN: config.securityAntiVPN,
-securityAntiProxy: config.securityAntiProxy,
-securityAntiNewAccounts: config.securityAntiNewAccounts,
-
-nodeVersion: process.version
-};
-res.render("stats", {
-  guild,
-  config,
-  stats
+  res.render("stats", {
+    guild,
+    config,
+    stats
+  });
 });
-});
+
 app.get("/dashboard/:guildId/premium", async (req, res) => {
   if (!req.session.access_token) {
     return res.redirect("/login");
@@ -471,7 +422,6 @@ app.get("/dashboard/:guildId/premium", async (req, res) => {
   }
 
   let config = await GuildConfig.findOne({ guildId });
-
   if (!config) {
     config = await GuildConfig.create({ guildId });
   }
@@ -497,6 +447,56 @@ app.get("/dashboard/:guildId/premium", async (req, res) => {
     textChannels,
     members
   });
+});
+
+app.post("/dashboard/:guildId/premium/embed", async (req, res) => {
+  try {
+    const guildId = req.params.guildId;
+    const guild = client.guilds.cache.get(guildId);
+
+    if (!guild) {
+      return res.send("❌ El bot no está en este servidor.");
+    }
+
+    const channel = guild.channels.cache.get(req.body.channelId);
+
+    if (!channel) {
+      return res.send("❌ Canal no encontrado.");
+    }
+
+    const embed = new EmbedBuilder()
+      .setTitle(req.body.embedTitle || "Embed personalizado")
+      .setDescription(req.body.embedDescription || "Sin descripción.")
+      .setColor(req.body.embedColor || "#7c3aed")
+      .setTimestamp();
+
+    if (req.body.embedImage) {
+      embed.setImage(req.body.embedImage);
+    }
+
+    if (req.body.embedThumbnail) {
+      embed.setThumbnail(req.body.embedThumbnail);
+    }
+
+    if (req.body.embedFooter) {
+      embed.setFooter({ text: req.body.embedFooter });
+    }
+
+    await channel.send({ embeds: [embed] });
+
+    await createBotLog({
+      guildId,
+      type: "premium_embed",
+      title: "🎨 Embed enviado",
+      description: `Embed enviado al canal #${channel.name}`,
+      channelId: channel.id
+    });
+
+    res.redirect(`/dashboard/${guildId}/premium`);
+  } catch (error) {
+    console.log("❌ Error enviando embed premium:", error);
+    res.send("❌ Error enviando embed.");
+  }
 });
 app.post("/dashboard/:guildId/configuration", async (req, res) => {
   const guildId = req.params.guildId;
