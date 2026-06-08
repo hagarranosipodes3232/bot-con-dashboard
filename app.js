@@ -524,6 +524,7 @@ app.post("/dashboard/:guildId/premium/welcome", async (req, res) => {
         welcomeMessage: req.body.welcomeMessage || "",
         welcomeImageUrl: req.body.welcomeImageUrl || "",
         welcomeDmEnabled: req.body.welcomeDmEnabled === "on",
+        welcomeDmMessage: req.body.welcomeDmMessage || "",
         welcomeShowMemberCount: req.body.welcomeShowMemberCount === "on"
       },
       {
