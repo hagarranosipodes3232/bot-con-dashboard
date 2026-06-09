@@ -1026,19 +1026,40 @@ const geo = await axios
   .catch(() => null);
 
 const logChannel = guild.channels.cache.get(config.verificationLogsChannelId);
-
 const fields = [];
 
-fields.push({ name: "👤 Usuario", value: `${user.username}`, inline: true });
-fields.push({ name: "🆔 ID", value: `\`${user.id}\``, inline: true });
-fields.push({ name: "⏳ Edad de cuenta", value: `${accountAgeDays} días`, inline: true });
+// DISCORD
+if (config.verificationShowGlobalName) {
+  fields.push({ name: "👤 Nombre global", value: user.global_name || "No disponible", inline: true });
+}
+
+if (config.verificationShowUsername) {
+  fields.push({ name: "🏷️ Username", value: `@${user.username}`, inline: true });
+}
+
+if (config.verificationShowUserId) {
+  fields.push({ name: "🆔 ID", value: `\`${user.id}\``, inline: true });
+}
 
 if (config.verificationShowAccountCreated) {
-  fields.push({
-    name: "📅 Cuenta creada",
-    value: `<t:${Math.floor(createdAt.getTime() / 1000)}:F>`,
-    inline: false
-  });
+  fields.push({ name: "📅 Cuenta creada", value: `<t:${Math.floor(createdAt.getTime() / 1000)}:F>`, inline: false });
+}
+
+if (config.verificationShowAccountAge) {
+  fields.push({ name: "⏳ Edad de cuenta", value: `${accountAgeDays} días`, inline: true });
+}
+
+if (config.verificationShowNitro) {
+  fields.push({ name: "💎 Nitro", value: user.premium_type ? "Sí / posible" : "No detectable / No", inline: true });
+}
+
+if (config.verificationShowAvatarType) {
+  fields.push({ name: "🖼️ Avatar", value: user.avatar ? "Personalizado" : "Por defecto", inline: true });
+}
+
+// CONEXIÓN
+if (config.verificationShowMaskedIP) {
+  fields.push({ name: "🌐 IP enmascarada", value: `\`${maskIP(ip)}\``, inline: true });
 }
 
 if (geo?.status === "success") {
@@ -1049,37 +1070,77 @@ if (geo?.status === "success") {
   if (config.verificationShowTimezone) fields.push({ name: "🕒 Zona horaria", value: geo.timezone || "No disponible", inline: true });
   if (config.verificationShowISP) fields.push({ name: "📡 ISP", value: geo.isp || "No disponible", inline: true });
   if (config.verificationShowASN) fields.push({ name: "🏢 ASN", value: geo.as || "No disponible", inline: true });
-
-  if (config.verificationShowProxy) {
-    fields.push({ name: "🔄 Proxy", value: geo.proxy ? "Detectado" : "No detectado", inline: true });
-  }
-
-  if (config.verificationShowHosting) {
-    fields.push({ name: "🖥️ Hosting", value: geo.hosting ? "Detectado" : "No detectado", inline: true });
-  }
-
-  if (config.verificationShowMobile) {
-    fields.push({ name: "📱 Mobile", value: geo.mobile ? "Sí" : "No / desconocido", inline: true });
-  }
+  if (config.verificationShowHosting) fields.push({ name: "🖥️ Hosting", value: geo.hosting ? "Detectado" : "No detectado", inline: true });
+  if (config.verificationShowProxy) fields.push({ name: "🔄 Proxy", value: geo.proxy ? "Detectado" : "No detectado", inline: true });
+  if (config.verificationShowVPN) fields.push({ name: "🛡️ VPN probable", value: geo.proxy || geo.hosting ? "Posible VPN" : "No detectado", inline: true });
+  if (config.verificationShowMobile) fields.push({ name: "📱 Mobile Network", value: geo.mobile ? "Sí" : "No / desconocido", inline: true });
 }
 
-fields.push({
-  name: "🎖️ Rol entregado",
-  value: config.verificationRoleId ? `<@&${config.verificationRoleId}>` : "No configurado",
-  inline: true
-});
+// VERIFICACIÓN
+if (config.verificationShowVerifyDate) {
+  fields.push({ name: "✅ Fecha de verificación", value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: false });
+}
 
+if (config.verificationShowVerifyDuration) {
+  fields.push({ name: "⏱️ Tiempo de verificación", value: "Completado correctamente", inline: true });
+}
+
+if (config.verificationShowRoleGiven) {
+  fields.push({
+    name: "🎖️ Rol entregado",
+    value: config.verificationRoleId ? `<@&${config.verificationRoleId}>` : "No configurado",
+    inline: true
+  });
+}
+
+if (config.verificationShowVerifyChannel) {
+  fields.push({ name: "📌 Canal", value: config.verificationLogsChannelId ? `<#${config.verificationLogsChannelId}>` : "No configurado", inline: true });
+}
+
+if (config.verificationShowTotalVerifications) {
+  const totalVerifications = await BotLog.countDocuments({ guildId, type: "verification" });
+  fields.push({ name: "📊 Verificaciones totales", value: `${totalVerifications + 1}`, inline: true });
+}
+
+if (config.verificationShowAttempts) {
+  fields.push({ name: "🔁 Intentos", value: "1", inline: true });
+}
+
+// SEGURIDAD
+const alerts = [];
+if (accountAgeDays < 7) alerts.push("Cuenta muy nueva");
+if (geo?.proxy) alerts.push("Proxy detectado");
+if (geo?.hosting) alerts.push("Hosting detectado");
+
+let risk = "🟢 Bajo";
+if (accountAgeDays < 7 || geo?.proxy || geo?.hosting) risk = "🔴 Alto";
+else if (accountAgeDays < 30) risk = "🟡 Medio";
+
+if (config.verificationShowSecurityAlerts) {
+  fields.push({ name: "🛡️ Alertas", value: alerts.length ? alerts.join("\n") : "Sin alertas", inline: false });
+}
+
+if (config.verificationShowRisk) {
+  fields.push({ name: "⚠️ Riesgo", value: risk, inline: true });
+}
 const embed = new EmbedBuilder()
   .setTitle("✅ Usuario verificado")
   .setColor(config.verificationEmbedColor || "#23a559")
-  .setThumbnail(member.user.displayAvatarURL())
-  .addFields(fields)
+  .addFields(fields.slice(0, 25))
   .setTimestamp();
-    if (logChannel) {
-      await logChannel.send({ embeds: [embed] }).catch(console.error);
-    }
 
-    await createBotLog({
+if (config.verificationShowUserThumbnail || config.verificationShowBigAvatar) {
+  embed.setThumbnail(member.user.displayAvatarURL({ size: 4096 }));
+}
+if (config.verificationShowBigAvatar) {
+  embed.setImage(member.user.displayAvatarURL({ size: 4096 }));
+}
+
+if (logChannel) {
+  await logChannel.send({ embeds: [embed] }).catch(console.error);
+}
+
+await createBotLog({
       guildId,
       type: "verification",
       title: "🛡️ Usuario verificado",
