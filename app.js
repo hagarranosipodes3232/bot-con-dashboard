@@ -1128,6 +1128,34 @@ const embed = new EmbedBuilder()
   .setColor(config.verificationEmbedColor || "#23a559")
   .addFields(fields.slice(0, 25))
   .setTimestamp();
+const rows = [];
+
+if (
+  config.verificationShowProfileButton ||
+  config.verificationShowCopyIdButton
+) {
+  const row = new ActionRowBuilder();
+
+  if (config.verificationShowProfileButton) {
+    row.addComponents(
+      new ButtonBuilder()
+        .setLabel("👤 Abrir perfil")
+        .setStyle(ButtonStyle.Link)
+        .setURL(`https://discord.com/users/${user.id}`)
+    );
+  }
+
+  if (config.verificationShowCopyIdButton) {
+    row.addComponents(
+      new ButtonBuilder()
+        .setCustomId(`copyid_${user.id}`)
+        .setLabel("🆔 Copiar ID")
+        .setStyle(ButtonStyle.Secondary)
+    );
+  }
+
+  rows.push(row);
+}
 
 if (config.verificationShowUserThumbnail || config.verificationShowBigAvatar) {
   embed.setThumbnail(member.user.displayAvatarURL({ size: 4096 }));
@@ -1137,7 +1165,10 @@ if (config.verificationShowBigAvatar) {
 }
 
 if (logChannel) {
-  await logChannel.send({ embeds: [embed] }).catch(console.error);
+await logChannel.send({
+  embeds: [embed],
+  components: rows
+}).catch(console.error);
 }
 
 await createBotLog({
@@ -1280,37 +1311,69 @@ async function sendLog(guild, config, embed, files = []) {
 
 client.on("interactionCreate", async interaction => {
   try {
-    if (interaction.isChatInputCommand()) {
-      const customCommand = await CustomCommand.findOne({
-        guildId: interaction.guild.id,
-        name: interaction.commandName
-      });
+     if (interaction.isChatInputCommand()) {
+  const customCommand = await CustomCommand.findOne({
+    guildId: interaction.guild.id,
+    name: interaction.commandName
+  });
 
-      if (!customCommand) {
-        return;
-      }
+  if (!customCommand) {
+    return;
+  }
 
-      if (customCommand.type === "embed") {
-        const embed = new EmbedBuilder()
-          .setTitle(`/${customCommand.name}`)
-          .setDescription(customCommand.response)
-          .setColor("#7c3aed")
-          .setTimestamp();
+  if (customCommand.type === "embed") {
+    const embed = new EmbedBuilder()
+      .setTitle(`/${customCommand.name}`)
+      .setDescription(customCommand.response)
+      .setColor("#7c3aed")
+      .setTimestamp();
 
-        return interaction.reply({
-          embeds: [embed]
-        });
-      }
+    return interaction.reply({
+      embeds: [embed]
+    });
+  }
 
-      return interaction.reply({
-        content: customCommand.response
-      });
-    }
+  if (customCommand.type === "dashboard") {
+    const embed = new EmbedBuilder()
+      .setTitle(`📌 /${customCommand.name}`)
+      .setDescription(customCommand.response)
+      .setColor("#7c3aed")
+      .setTimestamp();
 
-    if (
-      interaction.isButton() &&
-      interaction.customId.startsWith("open_ticket_")
-    ) {
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setLabel("🌐 Abrir Dashboard")
+        .setStyle(ButtonStyle.Link)
+        .setURL(process.env.BASE_URL)
+    );
+
+    return interaction.reply({
+      embeds: [embed],
+      components: [row]
+    });
+  }
+
+  return interaction.reply({
+    content: customCommand.response
+  });
+}
+
+if (
+  interaction.isButton() &&
+  interaction.customId.startsWith("copyid_")
+) {
+  const userId = interaction.customId.replace("copyid_", "");
+
+  return interaction.reply({
+    content: `🆔 ID del usuario: \`${userId}\``,
+    ephemeral: true
+  });
+}
+
+if (
+  interaction.isButton() &&
+  interaction.customId.startsWith("open_ticket_")
+) {
       const config = await GuildConfig.findOne({
         guildId: interaction.guild.id
       });
