@@ -1248,11 +1248,11 @@ app.get("/invite", (req, res) => {
     "https://discord.com/oauth2/authorize" +
     `?client_id=${process.env.CLIENT_ID}` +
     "&permissions=8" +
+    "&integration_type=0" +
     "&scope=bot%20applications.commands";
 
   res.redirect(url);
 });
-
 // =========================
 // FUNCIONES AUXILIARES
 // =========================
