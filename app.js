@@ -1242,14 +1242,12 @@ app.get("/verify/:guildId/discord", (req, res) => {
 // =========================
 // INVITE BOT
 // =========================
-
 app.get("/invite", (req, res) => {
   const url =
-    "https://discord.com/oauth2/authorize" +
-    `?client_id=${process.env.CLIENT_ID}` +
-    "&permissions=8" +
-    "&integration_type=0" +
-    "&scope=bot%20applications.commands";
+    `https://discord.com/oauth2/authorize?client_id=${process.env.CLIENT_ID}` +
+    `&permissions=8` +
+    `&integration_type=0` +
+    `&scope=bot%20applications.commands`;
 
   res.redirect(url);
 });
