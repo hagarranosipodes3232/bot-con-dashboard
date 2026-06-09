@@ -226,6 +226,7 @@ app.get("/dashboard/:guildId/logs", async (req, res) => {
     stats
   });
 });
+
 // =========================
 // BACKUP
 // =========================
@@ -931,15 +932,12 @@ app.post("/dashboard/:guildId/verification/send-panel", async (req, res) => {
     return res.send("❌ Error enviando panel de verificación.");
   }
 });
-
 // =========================
 // VERIFICACIÓN WEB
 // =========================
 
 function maskIP(ip = "") {
-  if (!ip) {
-    return "No disponible";
-  }
+  if (!ip) return "No disponible";
 
   if (ip.includes(".")) {
     const parts = ip.split(".");
@@ -958,6 +956,7 @@ function getClientIP(req) {
 
   return req.socket.remoteAddress || "";
 }
+
 app.get("/verify/callback", async (req, res) => {
   try {
     const code = req.query.code;
@@ -994,6 +993,79 @@ app.get("/verify/callback", async (req, res) => {
         Authorization: `Bearer ${tokenRes.data.access_token}`
       }
     });
+
+    const user = userRes.data;
+    const guild = client.guilds.cache.get(guildId);
+
+    if (!guild) {
+      return res.send("❌ El bot no está en este servidor.");
+    }
+
+    const member = await guild.members.fetch(user.id).catch(() => null);
+
+    if (!member) {
+      return res.send("❌ Tenés que estar dentro del servidor para verificarte.");
+    }
+
+    const createdAt = new Date(Number((BigInt(user.id) >> 22n) + 1420070400000n));
+    const accountAgeDays = Math.floor((Date.now() - createdAt.getTime()) / 86400000);
+
+    if (config.securityAntiNewAccounts && accountAgeDays < 7) {
+      return res.send("❌ Tu cuenta de Discord es demasiado nueva para verificarte.");
+    }
+
+    if (config.verificationRoleId) {
+      await member.roles.add(config.verificationRoleId).catch(console.error);
+    }
+
+    const logChannel = guild.channels.cache.get(config.verificationLogsChannelId);
+
+    const embed = new EmbedBuilder()
+      .setTitle("✅ Usuario verificado")
+      .setColor(config.verificationEmbedColor || "#23a559")
+      .setThumbnail(member.user.displayAvatarURL())
+      .addFields(
+        { name: "👤 Usuario", value: `${member.user.username}`, inline: true },
+        { name: "🆔 ID", value: `\`${member.id}\``, inline: true },
+        { name: "⏳ Edad de cuenta", value: `${accountAgeDays} días`, inline: true },
+        {
+          name: "🎖️ Rol entregado",
+          value: config.verificationRoleId ? `<@&${config.verificationRoleId}>` : "No configurado",
+          inline: true
+        }
+      )
+      .setTimestamp();
+
+    if (logChannel) {
+      await logChannel.send({ embeds: [embed] }).catch(console.error);
+    }
+
+    await createBotLog({
+      guildId,
+      type: "verification",
+      title: "🛡️ Usuario verificado",
+      description: `Usuario verificado: ${user.username}`,
+      userId: user.id,
+      username: user.username,
+      metadata: {
+        accountAgeDays
+      }
+    });
+
+    return res.send(`
+      <html>
+      <body style="background:#020617;color:white;font-family:Arial;text-align:center;padding-top:100px;">
+        <h1>✅ Verificación completada</h1>
+        <p>Ya fuiste verificado correctamente en el servidor.</p>
+      </body>
+      </html>
+    `);
+
+  } catch (error) {
+    console.log("❌ Error verify callback:", error.response?.data || error);
+    return res.send("❌ Error al completar la verificación.");
+  }
+});
 
 app.get("/verify/:guildId", async (req, res) => {
   const guildId = req.params.guildId;
@@ -1035,267 +1107,6 @@ app.get("/verify/:guildId/discord", (req, res) => {
     "&scope=identify";
 
   res.redirect(url);
-});
-    const user = userRes.data;
-    const guild = client.guilds.cache.get(guildId);
-
-    if (!guild) {
-      return res.send("❌ El bot no está en este servidor.");
-    }
-
-    const member = await guild.members.fetch(user.id).catch(() => null);
-
-    if (!member) {
-      return res.send("❌ Tenés que estar dentro del servidor para verificarte.");
-    }
-
-    const ip = getClientIP(req);
-
-    const geo = await axios
-      .get(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,regionName,city,isp,as,proxy,hosting,mobile,timezone,query`)
-      .then(r => r.data)
-      .catch(() => null);
-
-    const fields = [];
-
-    const createdAt = new Date(Number((BigInt(user.id) >> 22n) + 1420070400000n));
-    const accountAgeDays = Math.floor((Date.now() - createdAt.getTime()) / 86400000);
-
-    if (config.securityAntiNewAccounts && accountAgeDays < 7) {
-      return res.send("❌ Tu cuenta de Discord es demasiado nueva para verificarte.");
-    }
-
-    if (config.securityAntiProxy && geo?.proxy) {
-      return res.send("❌ No podés verificarte usando proxy.");
-    }
-
-    if (config.securityAntiVPN && (geo?.proxy || geo?.hosting)) {
-      return res.send("❌ No podés verificarte usando VPN o hosting.");
-    }
-
-    if (config.verificationRoleId) {
-      await member.roles.add(config.verificationRoleId).catch(console.error);
-    }
-
-    let risk = "🟢 Bajo";
-    const alerts = [];
-
-    if (accountAgeDays < 7) {
-      risk = "🔴 Alto";
-      alerts.push("Cuenta creada hace menos de 7 días");
-    } else if (accountAgeDays < 30) {
-      risk = "🟡 Medio";
-      alerts.push("Cuenta creada hace menos de 30 días");
-    }
-
-    if (geo?.proxy) {
-      alerts.push("Proxy detectado");
-    }
-
-    if (geo?.hosting) {
-      alerts.push("Hosting detectado");
-    }
-
-    if (config.verificationShowGlobalName) {
-      fields.push({
-        name: "👤 Nombre global",
-        value: user.global_name || "No disponible",
-        inline: true
-      });
-    }
-
-    if (config.verificationShowUsername) {
-      fields.push({
-        name: "🏷️ Username",
-        value: `@${user.username}`,
-        inline: true
-      });
-    }
-
-    if (config.verificationShowUserId) {
-      fields.push({
-        name: "🆔 ID",
-        value: `\`${user.id}\``,
-        inline: true
-      });
-    }
-
-    if (config.verificationShowAvatarType) {
-      fields.push({
-        name: "🖼️ Avatar",
-        value: user.avatar ? "Personalizado" : "Por defecto",
-        inline: true
-      });
-    }
-
-    if (config.verificationShowMaskedIP) {
-      fields.push({
-        name: "🌐 IP",
-        value: `\`${maskIP(ip)}\``,
-        inline: true
-      });
-    }
-
-    if (geo?.status === "success") {
-      if (config.verificationShowCity) {
-        fields.push({ name: "🏙️ Ciudad", value: geo.city || "No disponible", inline: true });
-      }
-
-      if (config.verificationShowRegion) {
-        fields.push({ name: "📍 Región", value: geo.regionName || "No disponible", inline: true });
-      }
-
-      if (config.verificationShowCountry) {
-        fields.push({ name: "🌎 País", value: geo.country || "No disponible", inline: true });
-      }
-
-      if (config.verificationShowCountryCode) {
-        fields.push({ name: "🏳️ Código país", value: geo.countryCode || "No disponible", inline: true });
-      }
-
-      if (config.verificationShowTimezone) {
-        fields.push({ name: "🕒 Zona horaria", value: geo.timezone || "No disponible", inline: true });
-      }
-
-      if (config.verificationShowISP) {
-        fields.push({ name: "📡 ISP", value: geo.isp || "No disponible", inline: true });
-      }
-
-      if (config.verificationShowASN) {
-        fields.push({ name: "🏢 ASN", value: geo.as || "No disponible", inline: true });
-      }
-
-      if (config.verificationShowVPN) {
-        fields.push({
-          name: "🛡️ VPN",
-          value: geo.proxy ? "Posible VPN/Proxy" : "No detectado",
-          inline: true
-        });
-      }
-
-      if (config.verificationShowProxy) {
-        fields.push({
-          name: "🔄 Proxy",
-          value: geo.proxy ? "Detectado" : "No detectado",
-          inline: true
-        });
-      }
-
-      if (config.verificationShowHosting) {
-        fields.push({
-          name: "🖥️ Hosting",
-          value: geo.hosting ? "Detectado" : "No detectado",
-          inline: true
-        });
-      }
-
-      if (config.verificationShowMobile) {
-        fields.push({
-          name: "📱 Mobile",
-          value: geo.mobile ? "Sí" : "No / desconocido",
-          inline: true
-        });
-      }
-    }
-
-    if (config.verificationShowAccountCreated) {
-      fields.push({
-        name: "📅 Cuenta creada",
-        value: `<t:${Math.floor(createdAt.getTime() / 1000)}:F>`,
-        inline: false
-      });
-    }
-
-    if (config.verificationShowAccountAge) {
-      fields.push({
-        name: "⏳ Edad de cuenta",
-        value: `${accountAgeDays} días`,
-        inline: true
-      });
-    }
-
-    if (config.verificationShowNitro) {
-      fields.push({
-        name: "💎 Nitro",
-        value: user.premium_type ? "Posible Nitro" : "No detectable / No",
-        inline: true
-      });
-    }
-
-    if (config.verificationShowVerifyDate) {
-      fields.push({
-        name: "✅ Verificado",
-        value: `<t:${Math.floor(Date.now() / 1000)}:F>`,
-        inline: false
-      });
-    }
-
-    if (config.verificationShowRoleGiven) {
-      fields.push({
-        name: "🎖️ Rol entregado",
-        value: config.verificationRoleId ? `<@&${config.verificationRoleId}>` : "No configurado",
-        inline: true
-      });
-    }
-
-    if (config.verificationShowRisk) {
-      fields.push({
-        name: "⚠️ Riesgo",
-        value: risk,
-        inline: true
-      });
-    }
-
-    if (config.verificationShowSecurityAlerts) {
-      fields.push({
-        name: "🛡️ Alertas",
-        value: alerts.length ? alerts.join("\n") : "Sin alertas",
-        inline: false
-      });
-    }
-
-    const logEmbed = new EmbedBuilder()
-      .setTitle("✅ Usuario verificado")
-      .setColor(config.verificationEmbedColor || "#23a559")
-      .setThumbnail(
-        user.avatar
-          ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
-          : null
-      )
-      .addFields(fields)
-      .setTimestamp();
-
-    const logChannel = guild.channels.cache.get(config.verificationLogsChannelId);
-
-    if (logChannel) {
-      await logChannel.send({ embeds: [logEmbed] }).catch(console.error);
-    }
-
-    await createBotLog({
-      guildId,
-      type: "verification",
-      title: "🛡️ Usuario verificado",
-      description: `Usuario verificado: ${user.username}`,
-      userId: user.id,
-      username: user.username,
-      metadata: {
-        accountAgeDays,
-        risk
-      }
-    });
-
-    return res.send(`
-      <html>
-      <body style="background:#020617;color:white;font-family:Arial;text-align:center;padding-top:100px;">
-        <h1>✅ Verificación completada</h1>
-        <p>Ya fuiste verificado correctamente en el servidor.</p>
-      </body>
-      </html>
-    `);
-  } catch (error) {
-    console.log("❌ Error verify callback:", error.response?.data || error);
-    return res.send("❌ Error al completar la verificación.");
-  }
 });
 // =========================
 // INVITE BOT
