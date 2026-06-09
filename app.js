@@ -1018,24 +1018,63 @@ app.get("/verify/callback", async (req, res) => {
       await member.roles.add(config.verificationRoleId).catch(console.error);
     }
 
-    const logChannel = guild.channels.cache.get(config.verificationLogsChannelId);
+   const ip = getClientIP(req);
 
-    const embed = new EmbedBuilder()
-      .setTitle("✅ Usuario verificado")
-      .setColor(config.verificationEmbedColor || "#23a559")
-      .setThumbnail(member.user.displayAvatarURL())
-      .addFields(
-        { name: "👤 Usuario", value: `${member.user.username}`, inline: true },
-        { name: "🆔 ID", value: `\`${member.id}\``, inline: true },
-        { name: "⏳ Edad de cuenta", value: `${accountAgeDays} días`, inline: true },
-        {
-          name: "🎖️ Rol entregado",
-          value: config.verificationRoleId ? `<@&${config.verificationRoleId}>` : "No configurado",
-          inline: true
-        }
-      )
-      .setTimestamp();
+const geo = await axios
+  .get(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,regionName,city,isp,as,proxy,hosting,mobile,timezone,query`)
+  .then(r => r.data)
+  .catch(() => null);
 
+const logChannel = guild.channels.cache.get(config.verificationLogsChannelId);
+
+const fields = [];
+
+fields.push({ name: "👤 Usuario", value: `${user.username}`, inline: true });
+fields.push({ name: "🆔 ID", value: `\`${user.id}\``, inline: true });
+fields.push({ name: "⏳ Edad de cuenta", value: `${accountAgeDays} días`, inline: true });
+
+if (config.verificationShowAccountCreated) {
+  fields.push({
+    name: "📅 Cuenta creada",
+    value: `<t:${Math.floor(createdAt.getTime() / 1000)}:F>`,
+    inline: false
+  });
+}
+
+if (geo?.status === "success") {
+  if (config.verificationShowCity) fields.push({ name: "🏙️ Ciudad", value: geo.city || "No disponible", inline: true });
+  if (config.verificationShowRegion) fields.push({ name: "📍 Región", value: geo.regionName || "No disponible", inline: true });
+  if (config.verificationShowCountry) fields.push({ name: "🌎 País", value: geo.country || "No disponible", inline: true });
+  if (config.verificationShowCountryCode) fields.push({ name: "🏳️ Código país", value: geo.countryCode || "No disponible", inline: true });
+  if (config.verificationShowTimezone) fields.push({ name: "🕒 Zona horaria", value: geo.timezone || "No disponible", inline: true });
+  if (config.verificationShowISP) fields.push({ name: "📡 ISP", value: geo.isp || "No disponible", inline: true });
+  if (config.verificationShowASN) fields.push({ name: "🏢 ASN", value: geo.as || "No disponible", inline: true });
+
+  if (config.verificationShowProxy) {
+    fields.push({ name: "🔄 Proxy", value: geo.proxy ? "Detectado" : "No detectado", inline: true });
+  }
+
+  if (config.verificationShowHosting) {
+    fields.push({ name: "🖥️ Hosting", value: geo.hosting ? "Detectado" : "No detectado", inline: true });
+  }
+
+  if (config.verificationShowMobile) {
+    fields.push({ name: "📱 Mobile", value: geo.mobile ? "Sí" : "No / desconocido", inline: true });
+  }
+}
+
+fields.push({
+  name: "🎖️ Rol entregado",
+  value: config.verificationRoleId ? `<@&${config.verificationRoleId}>` : "No configurado",
+  inline: true
+});
+
+const embed = new EmbedBuilder()
+  .setTitle("✅ Usuario verificado")
+  .setColor(config.verificationEmbedColor || "#23a559")
+  .setThumbnail(member.user.displayAvatarURL())
+  .addFields(fields)
+  .setTimestamp();
     if (logChannel) {
       await logChannel.send({ embeds: [embed] }).catch(console.error);
     }
