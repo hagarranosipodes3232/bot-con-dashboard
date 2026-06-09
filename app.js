@@ -429,7 +429,7 @@ app.get("/dashboard/:guildId/premium", async (req, res) => {
       name: ch.name
     }));
 
-  await guild.members.fetch();
+  await guild.members.fetch({ limit: 100 }).catch(() => {});
 
   const members = guild.members.cache
     .filter(m => !m.user.bot)
