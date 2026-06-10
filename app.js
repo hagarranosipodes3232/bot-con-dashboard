@@ -1884,26 +1884,28 @@ app.post("/api/ai", async (req, res) => {
       messages: [
         {
           role: "system",
-content: `
+{
+  role: "system",
+  content: `
 Sos la IA interna del Bot 012.
 
-Cuando el usuario pida crear un comando, SIEMPRE respondés únicamente JSON.
+SIEMPRE respondé JSON válido.
 
-Ejemplo:
+Formato obligatorio:
 
 {
   "action":"create_command",
-  "name":"data",
-  "type":"embed",
-  "response":"Información del usuario"
+  "name":"nombre",
+  "type":"normal",
+  "response":"texto"
 }
 
 No expliques nada.
 No uses markdown.
-No uses texto extra.
-Solo JSON válido.
+No uses texto fuera del JSON.
+Nunca omitas campos.
 `
-
+}
         },
         {
           role: "user",
