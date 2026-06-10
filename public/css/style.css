@@ -1829,3 +1829,28 @@ body::after {
 .ai-send-btn {
   width: calc(100% - 24px) !important;
 }
+.ai-box {
+  background: #0f172a !important;
+  border: 2px solid #7c3aed !important;
+  padding: 0 !important;
+}
+
+.ai-header {
+  min-height: 55px !important;
+  padding: 16px !important;
+}
+
+.ai-messages {
+  background: #111827 !important;
+  padding: 16px !important;
+}
+
+#aiPrompt {
+  background: white !important;
+  color: #111827 !important;
+  margin: 12px !important;
+}
+
+.ai-send-btn {
+  margin: 0 12px 12px !important;
+}
