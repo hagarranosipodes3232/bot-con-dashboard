@@ -1875,18 +1875,17 @@ client.on("guildMemberAdd", async member => {
 client.once("clientReady", () => {
   console.log(`🤖 Bot conectado como ${client.user.tag}`);
 });
+
 app.post("/api/ai", async (req, res) => {
   try {
     const prompt = req.body.prompt;
 
     const completion = await openai.chat.completions.create({
-    model: "google/gemma-4-e4b",
+      model: "google/gemma-4-e4b",
       messages: [
         {
           role: "system",
-
-  role: "system",
-  content: `
+          content: `
 Sos la IA interna del Bot 012.
 
 SIEMPRE respondé JSON válido.
@@ -1905,8 +1904,7 @@ No uses markdown.
 No uses texto fuera del JSON.
 Nunca omitas campos.
 `
-}
-       
+        },
         {
           role: "user",
           content: prompt
@@ -1921,13 +1919,15 @@ Nunca omitas campos.
 
   } catch (error) {
     console.log("❌ Error IA:", error.status, error.code, error.message);
-console.log("❌ Detalle IA:", error.response?.data || error);
+    console.log("❌ Detalle IA:", error.response?.data || error);
+
     res.json({
       success: false,
       response: "❌ Error consultando IA."
     });
   }
 });
+
 client.login(process.env.TOKEN);
 
 app.listen(process.env.PORT || 3000, () => {
