@@ -599,16 +599,28 @@ app.post("/dashboard/:guildId/premium/command", async (req, res) => {
 
     const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
-    await rest.post(
-      Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
-      {
-        body: {
-          name,
-          description: `Comando personalizado: ${name}`
-        }
-      }
-    );
+  const commandBody = {
+  name: cleanName,
+  description: `Comando creado por IA: ${cleanName}`
+};
 
+if (type === "userinfo") {
+  commandBody.options = [
+    {
+      name: "usuario",
+      description: "Usuario a consultar",
+      type: 6,
+      required: false
+    }
+  ];
+}
+
+await rest.post(
+  Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
+  {
+    body: commandBody
+  }
+);
     await createBotLog({
       guildId,
       type: "premium_command",
@@ -1324,7 +1336,25 @@ client.on("interactionCreate", async interaction => {
   if (!customCommand) {
     return;
   }
+if (customCommand.type === "userinfo") {
+  const user = interaction.options.getUser("usuario") || interaction.user;
+  const member = await interaction.guild.members.fetch(user.id).catch(() => null);
 
+  const embed = new EmbedBuilder()
+    .setTitle(`📊 Información de ${user.username}`)
+    .setThumbnail(user.displayAvatarURL({ size: 1024 }))
+    .setColor("#7c3aed")
+    .addFields(
+      { name: "👤 Usuario", value: `${user}`, inline: true },
+      { name: "🆔 ID", value: `\`${user.id}\``, inline: true },
+      { name: "📅 Cuenta creada", value: `<t:${Math.floor(user.createdTimestamp / 1000)}:F>`, inline: false },
+      { name: "📥 Entró al servidor", value: member?.joinedTimestamp ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>` : "No disponible", inline: false },
+      { name: "🎭 Roles", value: member ? member.roles.cache.filter(r => r.name !== "@everyone").map(r => `${r}`).join(", ") || "Sin roles" : "No disponible", inline: false }
+    )
+    .setTimestamp();
+
+  return interaction.reply({ embeds: [embed] });
+}
   if (customCommand.type === "embed") {
     const embed = new EmbedBuilder()
       .setTitle(`/${customCommand.name}`)
