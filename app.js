@@ -1908,6 +1908,11 @@ client.once("clientReady", () => {
 app.post("/api/ai", async (req, res) => {
   try {
     const prompt = req.body.prompt;
+    const guildId = req.body.guildId;
+
+    if (!guildId) {
+      return res.json({ success: false, response: "❌ Falta guildId." });
+    }
 
     const completion = await openai.chat.completions.create({
       model: "google/gemma-4-e4b",
@@ -1915,11 +1920,9 @@ app.post("/api/ai", async (req, res) => {
         {
           role: "system",
           content: `
-Sos la IA interna del Bot 012.
+Respondé SOLO JSON válido.
 
-SIEMPRE respondé JSON válido.
-
-Formato obligatorio:
+Formato:
 {
   "action":"create_command",
   "name":"nombre",
@@ -1935,32 +1938,76 @@ avatar
 serverinfo
 
 Reglas:
-- Si pide info de usuario, usá type userinfo.
-- Si pide avatar, usá type avatar.
-- Si pide info del servidor, usá type serverinfo.
+- Si pide información de usuario, datos de usuario, /data @usuario, usá type "userinfo".
 - El name va sin /.
 - No expliques nada.
 - No uses markdown.
-- No uses texto fuera del JSON.
 `
         },
-        {
-          role: "user",
-          content: prompt
-        }
+        { role: "user", content: prompt }
       ]
     });
 
+    const raw = completion.choices[0].message.content.trim();
+    const data = JSON.parse(raw);
+
+    const cleanName = String(data.name || "")
+      .toLowerCase()
+      .replace("/", "")
+      .replace(/[^a-z0-9_-]/g, "");
+
+    if (!cleanName) {
+      return res.json({ success: false, response: "❌ No pude detectar el nombre del comando." });
+    }
+
+    await CustomCommand.findOneAndUpdate(
+      { guildId, name: cleanName },
+      {
+        guildId,
+        name: cleanName,
+        type: data.type || "normal",
+        response: data.response || "Comando creado."
+      },
+      { upsert: true, new: true }
+    );
+
+    const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
+
+    const commandBody = {
+      name: cleanName,
+      description: `Comando creado por IA: ${cleanName}`
+    };
+
+    if (data.type === "userinfo") {
+      commandBody.options = [
+        {
+          name: "usuario",
+          description: "Usuario a consultar",
+          type: 6,
+          required: false
+        }
+      ];
+    }
+
+    await rest.put(
+      Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
+      {
+        body: [
+          commandBody
+        ]
+      }
+    );
+
     res.json({
       success: true,
-      response: completion.choices[0].message.content
+      response: `✅ Comando /${cleanName} creado correctamente.`
     });
 
   } catch (error) {
     console.log("❌ Error IA:", error);
     res.json({
       success: false,
-      response: "❌ Error consultando IA."
+      response: "❌ Error creando comando con IA."
     });
   }
 });
