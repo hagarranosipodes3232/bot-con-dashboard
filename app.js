@@ -599,9 +599,9 @@ app.post("/dashboard/:guildId/premium/command", async (req, res) => {
 
     const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
-  const commandBody = {
-  name: cleanName,
-  description: `Comando creado por IA: ${cleanName}`
+ const commandBody = {
+  name: name,
+  description: `Comando creado por IA: ${name}`
 };
 
 if (type === "userinfo") {
