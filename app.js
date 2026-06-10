@@ -1878,7 +1878,7 @@ app.post("/api/ai", async (req, res) => {
     const prompt = req.body.prompt;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
+     model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
