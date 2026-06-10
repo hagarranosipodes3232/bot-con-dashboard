@@ -1,5 +1,9 @@
 require("dotenv").config();
+const OpenAI = require("openai");
 
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 const express = require("express");
 const session = require("express-session");
 const axios = require("axios");
@@ -1869,7 +1873,37 @@ client.on("guildMemberAdd", async member => {
 client.once("clientReady", () => {
   console.log(`🤖 Bot conectado como ${client.user.tag}`);
 });
+app.post("/api/ai", async (req, res) => {
+  try {
+    const prompt = req.body.prompt;
 
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [
+        {
+          role: "system",
+          content: "Sos el asistente técnico del bot 012. Ayudás a crear comandos, tickets, verificación, embeds y sistemas para Discord."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ]
+    });
+
+    res.json({
+      success: true,
+      response: completion.choices[0].message.content
+    });
+
+  } catch (error) {
+    console.log("❌ Error IA:", error);
+    res.json({
+      success: false,
+      response: "❌ Error consultando IA."
+    });
+  }
+});
 client.login(process.env.TOKEN);
 
 app.listen(process.env.PORT || 3000, () => {

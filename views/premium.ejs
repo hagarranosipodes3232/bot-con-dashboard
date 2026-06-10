@@ -179,22 +179,20 @@
       name="welcomeMessage"
       rows="4"><%= config.welcomeMessage || "" %></textarea>
 
-    <label>Imagen URL</label>
+  <label>Imagen URL</label>
+<input
+  class="input"
+  type="text"
+  name="welcomeImageUrl"
+  value="<%= config.welcomeImageUrl || "" %>">
 
 <label>Mensaje privado (DM)</label>
-
 <textarea
   class="input"
   name="welcomeDmMessage"
   rows="4"><%= config.welcomeDmMessage || "" %></textarea>
 
-    <input
-      class="input"
-      type="text"
-      name="welcomeImageUrl"
-      value="<%= config.welcomeImageUrl || "" %>">
-
-    <label>
+      <label>
       <input type="checkbox"
       name="welcomeDmEnabled"
       <%= config.welcomeDmEnabled ? "checked" : "" %>>
@@ -285,24 +283,40 @@ function openAIBox() {
 function closeAIBox() {
   document.getElementById("aiBox").classList.remove("show");
 }
+async function sendAIMessage() {
 
-function sendAIMessage() {
   const input = document.getElementById("aiPrompt");
   const messages = document.getElementById("aiMessages");
 
   if (!input.value.trim()) return;
 
-  messages.innerHTML += `
-    <div class="ai-msg user">${input.value}</div>
-  `;
+  const text = input.value;
 
   messages.innerHTML += `
-    <div class="ai-msg bot">
-      Estoy pensando cómo hacer eso... Próximo paso: conectar esta ventana con el backend.
-    </div>
+    <div class="ai-msg user">${text}</div>
   `;
 
   input.value = "";
+
+  const loading = document.createElement("div");
+  loading.className = "ai-msg bot";
+  loading.innerHTML = "🤖 Pensando...";
+  messages.appendChild(loading);
+
+  const res = await fetch("/api/ai", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      prompt: text
+    })
+  });
+
+  const data = await res.json();
+
+  loading.innerHTML = data.response;
+
   messages.scrollTop = messages.scrollHeight;
 }
 </script>
