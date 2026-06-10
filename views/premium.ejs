@@ -255,5 +255,56 @@ Desde acá podés crear embeds, comandos personalizados y mensajes privados desd
 
   </main>
 </div>
+<button class="ai-float-btn" onclick="openAIBox()">🤖</button>
+
+<div class="ai-box" id="aiBox">
+  <div class="ai-header">
+    <strong>🤖 Asistente IA</strong>
+    <button onclick="closeAIBox()">✖</button>
+  </div>
+
+  <div class="ai-messages" id="aiMessages">
+    <div class="ai-msg bot">
+      Hola, soy tu asistente IA. Decime qué querés crear o modificar en el bot.
+    </div>
+  </div>
+
+  <textarea
+    id="aiPrompt"
+    placeholder="Ej: hacé que con /data @user aparezca la información de una persona verificada..."
+  ></textarea>
+
+  <button class="ai-send-btn" onclick="sendAIMessage()">Enviar</button>
+</div>
+
+<script>
+function openAIBox() {
+  document.getElementById("aiBox").classList.add("show");
+}
+
+function closeAIBox() {
+  document.getElementById("aiBox").classList.remove("show");
+}
+
+function sendAIMessage() {
+  const input = document.getElementById("aiPrompt");
+  const messages = document.getElementById("aiMessages");
+
+  if (!input.value.trim()) return;
+
+  messages.innerHTML += `
+    <div class="ai-msg user">${input.value}</div>
+  `;
+
+  messages.innerHTML += `
+    <div class="ai-msg bot">
+      Estoy pensando cómo hacer eso... Próximo paso: conectar esta ventana con el backend.
+    </div>
+  `;
+
+  input.value = "";
+  messages.scrollTop = messages.scrollHeight;
+}
+</script>
 </body>
 </html>
