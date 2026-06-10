@@ -2,8 +2,10 @@ require("dotenv").config();
 const OpenAI = require("openai");
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  baseURL: process.env.LM_STUDIO_URL,
+  apiKey: "lm-studio"
 });
+
 const express = require("express");
 const session = require("express-session");
 const axios = require("axios");
@@ -1878,7 +1880,7 @@ app.post("/api/ai", async (req, res) => {
     const prompt = req.body.prompt;
 
     const completion = await openai.chat.completions.create({
-     model: "gpt-4o-mini",
+    model: "google/gemma-4-e4b",
       messages: [
         {
           role: "system",
