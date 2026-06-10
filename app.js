@@ -1875,7 +1875,6 @@ client.on("guildMemberAdd", async member => {
 client.once("clientReady", () => {
   console.log(`🤖 Bot conectado como ${client.user.tag}`);
 });
-
 app.post("/api/ai", async (req, res) => {
   try {
     const prompt = req.body.prompt;
@@ -1891,7 +1890,6 @@ Sos la IA interna del Bot 012.
 SIEMPRE respondé JSON válido.
 
 Formato obligatorio:
-
 {
   "action":"create_command",
   "name":"nombre",
@@ -1899,10 +1897,21 @@ Formato obligatorio:
   "response":"texto"
 }
 
-No expliques nada.
-No uses markdown.
-No uses texto fuera del JSON.
-Nunca omitas campos.
+Tipos permitidos:
+normal
+embed
+userinfo
+avatar
+serverinfo
+
+Reglas:
+- Si pide info de usuario, usá type userinfo.
+- Si pide avatar, usá type avatar.
+- Si pide info del servidor, usá type serverinfo.
+- El name va sin /.
+- No expliques nada.
+- No uses markdown.
+- No uses texto fuera del JSON.
 `
         },
         {
@@ -1918,64 +1927,10 @@ Nunca omitas campos.
     });
 
   } catch (error) {
-    console.log("❌ Error IA:", error.status, error.code, error.message);
-    console.log("❌ Detalle IA:", error.response?.data || error);
-
+    console.log("❌ Error IA:", error);
     res.json({
       success: false,
       response: "❌ Error consultando IA."
-    });
-  }
-});
-app.post("/api/ai/create-command", async (req, res) => {
-  try {
-    const { guildId, name, type, response } = req.body;
-
-    const cleanName = String(name || "")
-      .toLowerCase()
-      .replace("/", "")
-      .replace(/[^a-z0-9_-]/g, "");
-
-    if (!guildId || !cleanName || !response) {
-      return res.json({
-        success: false,
-        message: "Faltan datos."
-      });
-    }
-
-    await CustomCommand.findOneAndUpdate(
-      { guildId, name: cleanName },
-      {
-        guildId,
-        name: cleanName,
-        response,
-        type: type || "normal"
-      },
-      { upsert: true, new: true }
-    );
-
-    const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
-
-    await rest.post(
-      Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
-      {
-        body: {
-          name: cleanName,
-          description: `Comando creado por IA: ${cleanName}`
-        }
-      }
-    );
-
-    res.json({
-      success: true,
-      message: `Comando /${cleanName} creado.`
-    });
-
-  } catch (error) {
-    console.log("❌ Error creando comando IA:", error);
-    res.json({
-      success: false,
-      message: "Error creando comando IA."
     });
   }
 });
