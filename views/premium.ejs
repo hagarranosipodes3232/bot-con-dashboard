@@ -284,7 +284,6 @@ function closeAIBox() {
   document.getElementById("aiBox").classList.remove("show");
 }
 async function sendAIMessage() {
-
   const input = document.getElementById("aiPrompt");
   const messages = document.getElementById("aiMessages");
 
@@ -292,10 +291,7 @@ async function sendAIMessage() {
 
   const text = input.value;
 
-  messages.innerHTML += `
-    <div class="ai-msg user">${text}</div>
-  `;
-
+  messages.innerHTML += `<div class="ai-msg user">${text}</div>`;
   input.value = "";
 
   const loading = document.createElement("div");
@@ -305,17 +301,41 @@ async function sendAIMessage() {
 
   const res = await fetch("/api/ai", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      prompt: text
-    })
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: text })
   });
 
   const data = await res.json();
 
-  loading.innerHTML = data.response;
+  let aiText = data.response;
+
+  try {
+    const json = JSON.parse(aiText);
+
+    if (json.action === "create_command") {
+      const createRes = await fetch("/api/ai/create-command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          guildId: "<%= guild.id %>",
+          name: json.name.replace("/", ""),
+          type: json.type,
+          response: json.response
+        })
+      });
+
+      const result = await createRes.json();
+
+      loading.innerHTML = result.success
+        ? `✅ Comando /${json.name.replace("/", "")} creado correctamente.`
+        : `❌ Error creando comando.`;
+    } else {
+      loading.innerHTML = aiText;
+    }
+
+  } catch {
+    loading.innerHTML = aiText;
+  }
 
   messages.scrollTop = messages.scrollHeight;
 }

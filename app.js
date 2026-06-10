@@ -1927,7 +1927,58 @@ Nunca omitas campos.
     });
   }
 });
+app.post("/api/ai/create-command", async (req, res) => {
+  try {
+    const { guildId, name, type, response } = req.body;
 
+    const cleanName = String(name || "")
+      .toLowerCase()
+      .replace("/", "")
+      .replace(/[^a-z0-9_-]/g, "");
+
+    if (!guildId || !cleanName || !response) {
+      return res.json({
+        success: false,
+        message: "Faltan datos."
+      });
+    }
+
+    await CustomCommand.findOneAndUpdate(
+      { guildId, name: cleanName },
+      {
+        guildId,
+        name: cleanName,
+        response,
+        type: type || "normal"
+      },
+      { upsert: true, new: true }
+    );
+
+    const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
+
+    await rest.post(
+      Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
+      {
+        body: {
+          name: cleanName,
+          description: `Comando creado por IA: ${cleanName}`
+        }
+      }
+    );
+
+    res.json({
+      success: true,
+      message: `Comando /${cleanName} creado.`
+    });
+
+  } catch (error) {
+    console.log("❌ Error creando comando IA:", error);
+    res.json({
+      success: false,
+      message: "Error creando comando IA."
+    });
+  }
+});
 client.login(process.env.TOKEN);
 
 app.listen(process.env.PORT || 3000, () => {
