@@ -50,13 +50,11 @@
     </div>
 
     <div class="dashboard-grid">
-
       <section>
 
         <form method="POST" action="/dashboard/<%= guild.id %>/premium/embed">
           <div class="card">
             <h2>🎨 Crear embed personalizado</h2>
-            <p class="muted-text">Diseñá un embed y envialo a un canal del servidor.</p>
 
             <label>Canal</label>
             <select class="input" name="channelId" required>
@@ -93,7 +91,6 @@
         <form method="POST" action="/dashboard/<%= guild.id %>/premium/command">
           <div class="card">
             <h2>⚡ Crear comando personalizado</h2>
-            <p class="muted-text">Creá comandos simples como /reglas, /tienda, /staff o /redes.</p>
 
             <label>Nombre del comando</label>
             <input class="input" name="commandName" placeholder="reglas" required>
@@ -106,6 +103,7 @@
               <option value="normal">Mensaje normal</option>
               <option value="embed">Embed premium</option>
               <option value="dashboard">Embed con botón Dashboard</option>
+              <option value="userinfo">Información de usuario</option>
             </select>
 
             <div class="actions">
@@ -117,7 +115,6 @@
         <form method="POST" action="/dashboard/<%= guild.id %>/premium/dm">
           <div class="card">
             <h2>📩 Enviar mensaje privado</h2>
-            <p class="muted-text">Mandá un mensaje privado a un miembro del servidor.</p>
 
             <label>Usuario</label>
             <select class="input" name="userId" required>
@@ -128,94 +125,66 @@
             </select>
 
             <label>Mensaje privado</label>
-            <textarea class="textarea" name="dmMessage" placeholder="Escribí el mensaje privado..." required></textarea>
+            <textarea class="textarea" name="dmMessage" required></textarea>
 
             <div class="actions">
               <button class="btn green" type="submit">📨 Enviar privado</button>
             </div>
           </div>
         </form>
-<div class="card">
-  <h2>👋 Sistema de Bienvenida</h2>
 
-  <form method="POST" action="/dashboard/<%= guild.id %>/premium/welcome">
+        <div class="card">
+          <h2>👋 Sistema de Bienvenida</h2>
 
-    <label>
-      <input type="checkbox" name="welcomeEnabled"
-      <%= config.welcomeEnabled ? "checked" : "" %>>
-      Activar bienvenida
-    </label>
+          <form method="POST" action="/dashboard/<%= guild.id %>/premium/welcome">
+            <label>
+              <input type="checkbox" name="welcomeEnabled" <%= config.welcomeEnabled ? "checked" : "" %>>
+              Activar bienvenida
+            </label>
 
-    <label>Canal de bienvenida</label>
-    <select class="input" name="welcomeChannelId">
-      <option value="">Seleccionar canal</option>
+            <label>Canal de bienvenida</label>
+            <select class="input" name="welcomeChannelId">
+              <option value="">Seleccionar canal</option>
+              <% textChannels.forEach(channel => { %>
+                <option value="<%= channel.id %>" <%= config.welcomeChannelId === channel.id ? "selected" : "" %>>
+                  # <%= channel.name %>
+                </option>
+              <% }) %>
+            </select>
 
-      <% textChannels.forEach(channel => { %>
-        <option
-          value="<%= channel.id %>"
-          <%= config.welcomeChannelId === channel.id ? "selected" : "" %>>
-          # <%= channel.name %>
-        </option>
-      <% }) %>
-    </select>
+            <label>Rol automático</label>
+            <select class="input" name="welcomeRoleId">
+              <option value="">Sin rol</option>
+              <% roles.forEach(role => { %>
+                <option value="<%= role.id %>" <%= config.welcomeRoleId === role.id ? "selected" : "" %>>
+                  <%= role.name %>
+                </option>
+              <% }) %>
+            </select>
 
-    <label>Rol automático</label>
-    <select class="input" name="welcomeRoleId">
-      <option value="">Sin rol</option>
+            <label>Mensaje de bienvenida</label>
+            <textarea class="input" name="welcomeMessage" rows="4"><%= config.welcomeMessage || "" %></textarea>
 
-      <% roles.forEach(role => { %>
-        <option
-          value="<%= role.id %>"
-          <%= config.welcomeRoleId === role.id ? "selected" : "" %>>
-          <%= role.name %>
-        </option>
-      <% }) %>
-    </select>
+            <label>Imagen URL</label>
+            <input class="input" type="text" name="welcomeImageUrl" value="<%= config.welcomeImageUrl || "" %>">
 
-    <label>Mensaje de bienvenida</label>
+            <label>Mensaje privado DM</label>
+            <textarea class="input" name="welcomeDmMessage" rows="4"><%= config.welcomeDmMessage || "" %></textarea>
 
-    <textarea
-      class="input"
-      name="welcomeMessage"
-      rows="4"><%= config.welcomeMessage || "" %></textarea>
+            <label>
+              <input type="checkbox" name="welcomeDmEnabled" <%= config.welcomeDmEnabled ? "checked" : "" %>>
+              Enviar DM privado
+            </label>
 
-  <label>Imagen URL</label>
-<input
-  class="input"
-  type="text"
-  name="welcomeImageUrl"
-  value="<%= config.welcomeImageUrl || "" %>">
+            <label>
+              <input type="checkbox" name="welcomeShowMemberCount" <%= config.welcomeShowMemberCount ? "checked" : "" %>>
+              Mostrar contador de miembros
+            </label>
 
-<label>Mensaje privado (DM)</label>
-<textarea
-  class="input"
-  name="welcomeDmMessage"
-  rows="4"><%= config.welcomeDmMessage || "" %></textarea>
-
-      <label>
-      <input type="checkbox"
-      name="welcomeDmEnabled"
-      <%= config.welcomeDmEnabled ? "checked" : "" %>>
-
-      Enviar DM privado
-    </label>
-
-    <label>
-      <input type="checkbox"
-      name="welcomeShowMemberCount"
-      <%= config.welcomeShowMemberCount ? "checked" : "" %>>
-
-      Mostrar contador de miembros
-    </label>
-
-    <br><br>
-
-    <button class="btn green">
-      👋 Guardar Bienvenida
-    </button>
-
-  </form>
-</div>
+            <br><br>
+            <button class="btn green">👋 Guardar Bienvenida</button>
+          </form>
+        </div>
 
       </section>
 
@@ -236,23 +205,11 @@ Desde acá podés crear embeds, comandos personalizados y mensajes privados desd
             </p>
           </div>
         </div>
-
-        <div class="card">
-          <h2>🚀 Funciones</h2>
-          <p class="muted-text">
-            🎨 Embeds personalizados<br>
-            ⚡ Comandos custom<br>
-            📩 Mensajes privados<br>
-            🖼️ Imágenes y thumbnails<br>
-            🎭 Personalización avanzada
-          </p>
-        </div>
       </aside>
-
     </div>
-
   </main>
 </div>
+
 <button class="ai-float-btn" onclick="openAIBox()">🤖</button>
 
 <div class="ai-box" id="aiBox">
@@ -263,13 +220,13 @@ Desde acá podés crear embeds, comandos personalizados y mensajes privados desd
 
   <div class="ai-messages" id="aiMessages">
     <div class="ai-msg bot">
-      Hola, soy tu asistente IA. Decime qué querés crear o modificar en el bot.
+      Hola, soy tu asistente IA. Decime qué comando querés crear.
     </div>
   </div>
 
   <textarea
     id="aiPrompt"
-    placeholder="Ej: hacé que con /data @user aparezca la información de una persona verificada..."
+    placeholder="Ej: creame un comando /data @usuario que muestre la información del usuario"
   ></textarea>
 
   <button class="ai-send-btn" onclick="sendAIMessage()">Enviar</button>
@@ -283,6 +240,7 @@ function openAIBox() {
 function closeAIBox() {
   document.getElementById("aiBox").classList.remove("show");
 }
+
 async function sendAIMessage() {
   const input = document.getElementById("aiPrompt");
   const messages = document.getElementById("aiMessages");
@@ -299,46 +257,28 @@ async function sendAIMessage() {
   loading.innerHTML = "🤖 Pensando...";
   messages.appendChild(loading);
 
-  const res = await fetch("/api/ai", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: text })
-  });
-
-  const data = await res.json();
-
-  let aiText = data.response;
-
   try {
-    const json = JSON.parse(aiText);
+    const res = await fetch("/api/ai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        prompt: text,
+        guildId: "<%= guild.id %>"
+      })
+    });
 
-    if (json.action === "create_command") {
-      const createRes = await fetch("/api/ai/create-command", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          guildId: "<%= guild.id %>",
-          name: json.name.replace("/", ""),
-          type: json.type,
-          response: json.response
-        })
-      });
+    const data = await res.json();
 
-      const result = await createRes.json();
-
-      loading.innerHTML = result.success
-        ? `✅ Comando /${json.name.replace("/", "")} creado correctamente.`
-        : `❌ Error creando comando.`;
-    } else {
-      loading.innerHTML = aiText;
-    }
-
-  } catch {
-    loading.innerHTML = aiText;
+    loading.innerHTML = data.response || "❌ No hubo respuesta.";
+  } catch (error) {
+    loading.innerHTML = "❌ Error conectando con la IA.";
   }
 
   messages.scrollTop = messages.scrollHeight;
 }
 </script>
+
 </body>
 </html>

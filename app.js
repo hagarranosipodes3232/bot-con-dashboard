@@ -1907,9 +1907,9 @@ client.once("clientReady", () => {
 });
 app.post("/api/ai", async (req, res) => {
   try {
-    const prompt = req.body.prompt;
-    const guildId = req.body.guildId;
-
+  const prompt = req.body.prompt;
+const guildId = req.body.guildId;
+ 
     if (!guildId) {
       return res.json({ success: false, response: "❌ Falta guildId." });
     }
