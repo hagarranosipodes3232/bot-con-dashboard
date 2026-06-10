@@ -1897,7 +1897,8 @@ app.post("/api/ai", async (req, res) => {
     });
 
   } catch (error) {
-    console.log("❌ Error IA:", error);
+    console.log("❌ Error IA:", error.status, error.code, error.message);
+console.log("❌ Detalle IA:", error.response?.data || error);
     res.json({
       success: false,
       response: "❌ Error consultando IA."
