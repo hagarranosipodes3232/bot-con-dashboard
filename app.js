@@ -1884,7 +1884,7 @@ app.post("/api/ai", async (req, res) => {
       messages: [
         {
           role: "system",
-{
+
   role: "system",
   content: `
 Sos la IA interna del Bot 012.
