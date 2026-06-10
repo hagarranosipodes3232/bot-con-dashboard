@@ -1906,7 +1906,7 @@ No uses texto fuera del JSON.
 Nunca omitas campos.
 `
 }
-        },
+       
         {
           role: "user",
           content: prompt
