@@ -1989,7 +1989,17 @@ Reglas:
       ]
     });
 
-    const raw = completion.choices[0].message.content.trim();
+   const raw = completion?.choices?.[0]?.message?.content;
+
+if (!raw) {
+  console.log("Respuesta IA inválida:", completion);
+  return res.json({
+    success: false,
+    response: "❌ La IA no devolvió respuesta válida."
+  });
+}
+
+const data = JSON.parse(raw.trim());
     const data = JSON.parse(raw);
 
     const cleanName = String(data.name || "")
