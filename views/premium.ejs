@@ -111,6 +111,24 @@
             </div>
           </div>
         </form>
+<div class="card">
+  <h2>🗑️ Comandos creados</h2>
+
+  <% if (commands && commands.length > 0) { %>
+    <% commands.forEach(cmd => { %>
+      <form method="POST" action="/dashboard/<%= guild.id %>/premium/delete-command" style="margin-bottom:10px;">
+        <input type="hidden" name="commandName" value="<%= cmd.name %>">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+          <span>/<%= cmd.name %> - <%= cmd.type %></span>
+          <button class="btn red" type="submit">🗑️ Borrar</button>
+        </div>
+      </form>
+    <% }) %>
+  <% } else { %>
+    <p>No hay comandos creados.</p>
+  <% } %>
+</div>
 
         <form method="POST" action="/dashboard/<%= guild.id %>/premium/dm">
           <div class="card">

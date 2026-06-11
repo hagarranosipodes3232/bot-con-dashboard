@@ -323,7 +323,6 @@ app.get("/dashboard/:guildId/configuration", async (req, res) => {
     config
   });
 });
-
 app.post("/dashboard/:guildId/configuration", async (req, res) => {
   const guildId = req.params.guildId;
 
@@ -452,15 +451,17 @@ app.get("/dashboard/:guildId/premium", async (req, res) => {
       name: role.name
     }));
 
+  const commands = await CustomCommand.find({ guildId });
+
   res.render("premium", {
     guild,
     config,
     textChannels,
     members,
-    roles
+    roles,
+    commands
   });
 });
-
 app.post("/dashboard/:guildId/premium/embed", async (req, res) => {
   try {
     const guildId = req.params.guildId;
@@ -632,6 +633,55 @@ await rest.post(
   } catch (error) {
     console.log("❌ Error creando comando:", error);
     res.send("❌ Error creando comando.");
+  }
+});
+
+app.post("/dashboard/:guildId/premium/delete-command", async (req, res) => {
+  try {
+    const guildId = req.params.guildId;
+    const commandName = req.body.commandName;
+
+    await CustomCommand.deleteOne({
+      guildId,
+      name: commandName
+    });
+
+    const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
+
+    const commands = await CustomCommand.find({ guildId });
+
+    const body = commands.map(cmd => {
+      const data = {
+        name: cmd.name,
+        description: `Comando creado por IA: ${cmd.name}`
+      };
+
+      if (cmd.type === "userinfo") {
+        data.options = [
+          {
+            name: "usuario",
+            description: "Usuario a consultar",
+            type: 6,
+            required: false
+          }
+        ];
+      }
+
+      return data;
+    });
+
+    await rest.put(
+      Routes.applicationGuildCommands(
+        process.env.CLIENT_ID,
+        guildId
+      ),
+      { body }
+    );
+
+    res.redirect(`/dashboard/${guildId}/premium`);
+  } catch (error) {
+    console.log("❌ Error eliminando comando:", error);
+    res.send("❌ Error eliminando comando.");
   }
 });
 // =========================
