@@ -286,7 +286,7 @@ app.post("/dashboard/:guildId/backup/import", upload.single("backupFile"), async
     await GuildConfig.findOneAndUpdate(
       { guildId },
       backupData,
-      { upsert: true, new: true }
+     { upsert: true, returnDocument: "after" }
     );
 
     res.redirect(`/dashboard/${guildId}/configuration`);
@@ -344,7 +344,7 @@ app.post("/dashboard/:guildId/configuration", async (req, res) => {
   await GuildConfig.findOneAndUpdate(
     { guildId },
     updateData,
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: "after" }
   );
 
   res.redirect(`/dashboard/${guildId}/configuration`);
@@ -595,7 +595,7 @@ app.post("/dashboard/:guildId/premium/command", async (req, res) => {
     await CustomCommand.findOneAndUpdate(
       { guildId, name },
       { guildId, name, response, type },
-      { upsert: true, new: true }
+     { upsert: true, returnDocument: "after" }
     );
 
     const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
@@ -1261,7 +1261,7 @@ await VerificationData.findOneAndUpdate(
     accountAgeDays,
     verifiedAt: new Date()
   },
-  { upsert: true, new: true }
+  { upsert: true, returnDocument: "after" }
 );
 await createBotLog({
       guildId,
@@ -2068,7 +2068,7 @@ const data = JSON.parse(raw.trim());
         type: data.type || "normal",
         response: data.response || "Comando creado."
       },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: "after" }
     );
 
     const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
