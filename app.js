@@ -2000,8 +2000,7 @@ if (!raw) {
 }
 
 const data = JSON.parse(raw.trim());
-    const data = JSON.parse(raw);
-
+  
     const cleanName = String(data.name || "")
       .toLowerCase()
       .replace("/", "")
