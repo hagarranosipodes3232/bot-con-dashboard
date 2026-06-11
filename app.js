@@ -2054,7 +2054,7 @@ const data = JSON.parse(raw.trim());
     });
 
   } catch (error) {
-    console.log("❌ Error IA:", error);
+    console.log("❌ Error  bot IA:", error);
     res.json({
       success: false,
       response: "❌ Error creando comando con IA."
