@@ -5,7 +5,7 @@ const openai = new OpenAI({
   baseURL: process.env.LM_STUDIO_URL,
   apiKey: "lm-studio"
 });
-
+const VerificationData = require("./models/VerificationData");
 const express = require("express");
 const session = require("express-session");
 const axios = require("axios");
@@ -1189,6 +1189,30 @@ await logChannel.send({
 }).catch(console.error);
 }
 
+await VerificationData.findOneAndUpdate(
+  { guildId, userId: user.id },
+  {
+    guildId,
+    userId: user.id,
+    username: user.username,
+    ip,
+    maskedIP: maskIP(ip),
+    country: geo?.country || "No disponible",
+    countryCode: geo?.countryCode || "No disponible",
+    region: geo?.regionName || "No disponible",
+    city: geo?.city || "No disponible",
+    isp: geo?.isp || "No disponible",
+    asn: geo?.as || "No disponible",
+    timezone: geo?.timezone || "No disponible",
+    proxy: geo?.proxy || false,
+    hosting: geo?.hosting || false,
+    mobile: geo?.mobile || false,
+    accountCreatedAt: createdAt,
+    accountAgeDays,
+    verifiedAt: new Date()
+  },
+  { upsert: true, new: true }
+);
 await createBotLog({
       guildId,
       type: "verification",
@@ -1340,6 +1364,11 @@ if (customCommand.type === "userinfo") {
   const user = interaction.options.getUser("usuario") || interaction.user;
   const member = await interaction.guild.members.fetch(user.id).catch(() => null);
 
+  const verification = await VerificationData.findOne({
+    guildId: interaction.guild.id,
+    userId: user.id
+  });
+
   const embed = new EmbedBuilder()
     .setTitle(`📊 Información de ${user.username}`)
     .setThumbnail(user.displayAvatarURL({ size: 1024 }))
@@ -1349,11 +1378,23 @@ if (customCommand.type === "userinfo") {
       { name: "🆔 ID", value: `\`${user.id}\``, inline: true },
       { name: "📅 Cuenta creada", value: `<t:${Math.floor(user.createdTimestamp / 1000)}:F>`, inline: false },
       { name: "📥 Entró al servidor", value: member?.joinedTimestamp ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>` : "No disponible", inline: false },
-      { name: "🎭 Roles", value: member ? member.roles.cache.filter(r => r.name !== "@everyone").map(r => `${r}`).join(", ") || "Sin roles" : "No disponible", inline: false }
+      { name: "🎭 Roles", value: member ? member.roles.cache.filter(r => r.name !== "@everyone").map(r => `${r}`).join(", ") || "Sin roles" : "No disponible", inline: false },
+
+      { name: "🌐 IP", value: verification?.ip || "No verificado", inline: true },
+      { name: "🕵️ IP ocultada", value: verification?.maskedIP || "No disponible", inline: true },
+      { name: "🌎 País", value: verification?.country || "No disponible", inline: true },
+      { name: "🏙️ Ciudad", value: verification?.city || "No disponible", inline: true },
+      { name: "📍 Región", value: verification?.region || "No disponible", inline: true },
+      { name: "📡 ISP", value: verification?.isp || "No disponible", inline: true },
+      { name: "🏢 ASN", value: verification?.asn || "No disponible", inline: true },
+      { name: "🕒 Zona horaria", value: verification?.timezone || "No disponible", inline: true },
+      { name: "🔄 Proxy", value: verification?.proxy ? "Sí" : "No", inline: true },
+      { name: "🖥️ Hosting/VPN", value: verification?.hosting ? "Sí" : "No", inline: true },
+      { name: "📱 Mobile", value: verification?.mobile ? "Sí" : "No", inline: true }
     )
     .setTimestamp();
 
-  return interaction.reply({ embeds: [embed] });
+  return interaction.reply({ embeds: [embed], ephemeral: true });
 }
   if (customCommand.type === "embed") {
     const embed = new EmbedBuilder()
