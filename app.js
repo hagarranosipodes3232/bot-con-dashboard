@@ -1069,7 +1069,14 @@ app.get("/verify/callback", async (req, res) => {
       return res.send("❌ El bot no está en este servidor.");
     }
 
-    const member = await guild.members.fetch(user.id).catch(() => null);
+  const member = await guild.members.fetch(user.id).catch(error => {
+  console.log("❌ No pude encontrar al miembro:", user.id, error.message);
+  return null;
+});
+
+console.log("Usuario OAuth:", user.id, user.username);
+console.log("Servidor:", guild.id, guild.name);
+console.log("Miembro encontrado:", member ? "SI" : "NO");
 
     if (!member) {
       return res.send("❌ Tenés que estar dentro del servidor para verificarte.");
