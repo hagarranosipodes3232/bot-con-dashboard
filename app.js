@@ -2159,15 +2159,25 @@ if (data.action === "delete_command") {
       ];
     }
 
-    await rest.put(
-      Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
-      {
-        body: [
-          commandBody
-        ]
-      }
-    );
+  const commands = await CustomCommand.find({ guildId });
 
+const body = commands.map(cmd => ({
+  name: cmd.name,
+  description: `Comando creado por IA: ${cmd.name}`,
+  ...(cmd.type === "userinfo" ? {
+    options: [{
+      name: "usuario",
+      description: "Usuario a consultar",
+      type: 6,
+      required: false
+    }]
+  } : {})
+}));
+
+await rest.put(
+  Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
+  { body }
+);
     res.json({
       success: true,
       response: `✅ Comando /${cleanName} creado correctamente.`
