@@ -1,10 +1,36 @@
 require("dotenv").config();
-const OpenAI = require("openai");
+async function askGemini(prompt) {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: prompt
+              }
+            ]
+          }
+        ]
+      })
+    }
+  );
 
-const openai = new OpenAI({
-  baseURL: process.env.LM_STUDIO_URL,
-  apiKey: "lm-studio"
-});
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.log("❌ Error Gemini:", data);
+    throw new Error("Error Gemini");
+  }
+
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+}
 const VerificationData = require("./models/VerificationData");
 const express = require("express");
 const session = require("express-session");
@@ -615,12 +641,24 @@ if (type === "userinfo") {
     }
   ];
 }
+const commands = await CustomCommand.find({ guildId });
 
-await rest.post(
+const body = commands.map(cmd => ({
+  name: cmd.name,
+  description: `Comando creado por IA: ${cmd.name}`,
+  ...(cmd.type === "userinfo" ? {
+    options: [{
+      name: "usuario",
+      description: "Usuario a consultar",
+      type: 6,
+      required: false
+    }]
+  } : {})
+}));
+
+await rest.put(
   Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
-  {
-    body: commandBody
-  }
+  { body }
 );
     await createBotLog({
       guildId,
@@ -2012,12 +2050,7 @@ const guildId = req.body.guildId;
       return res.json({ success: false, response: "❌ Falta guildId." });
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "google/gemma-4-e4b",
-      messages: [
-        {
-          role: "system",
-          content: `
+  const raw = await askGemini(`
 Respondé SOLO JSON válido.
 
 Formato:
@@ -2037,19 +2070,18 @@ serverinfo
 
 Reglas:
 - Si pide información de usuario, datos de usuario, /data @usuario, usá type "userinfo".
+- Si pide borrar, eliminar o quitar comandos, respondé con:
+{"action":"delete_command","name":"nombre","type":"normal","response":"Comando eliminado."}
 - El name va sin /.
 - No expliques nada.
 - No uses markdown.
-`
-        },
-        { role: "user", content: prompt }
-      ]
-    });
 
-   const raw = completion?.choices?.[0]?.message?.content;
+Pedido del usuario:
+${prompt}
+`);
 
 if (!raw) {
-  console.log("Respuesta IA inválida:", completion);
+ console.log("Respuesta IA inválida:", raw);
   return res.json({
     success: false,
     response: "❌ La IA no devolvió respuesta válida."
@@ -2066,7 +2098,38 @@ const data = JSON.parse(raw.trim());
     if (!cleanName) {
       return res.json({ success: false, response: "❌ No pude detectar el nombre del comando." });
     }
+if (data.action === "delete_command") {
+  await CustomCommand.deleteOne({
+    guildId,
+    name: cleanName
+  });
 
+  const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
+  const commands = await CustomCommand.find({ guildId });
+
+  const body = commands.map(cmd => ({
+    name: cmd.name,
+    description: `Comando creado por IA: ${cmd.name}`,
+    ...(cmd.type === "userinfo" ? {
+      options: [{
+        name: "usuario",
+        description: "Usuario a consultar",
+        type: 6,
+        required: false
+      }]
+    } : {})
+  }));
+
+  await rest.put(
+    Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
+    { body }
+  );
+
+  return res.json({
+    success: true,
+    response: `🗑️ Comando /${cleanName} eliminado correctamente.`
+  });
+}
     await CustomCommand.findOneAndUpdate(
       { guildId, name: cleanName },
       {
